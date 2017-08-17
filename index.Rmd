@@ -1,0 +1,16 @@
+---
+title: "Stats 506, Statistical Computing"
+author: "Instructor: James Henderson, PhD"
+date: "Fall 2017"
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+
+<center>
+## Course Materials 
+<a href="./syllabus.html">Syllabus</a>
+</center>

@@ -1,0 +1,72 @@
+---
+title: "<a href='./index.html'>Stats 506, Statistical Computing</a>"
+author:
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    include:
+      after_body: footer.html
+    css: styles.css
+---
+
+# Syllabus
+
+## Contact Information:
+
+  + Instructor: James Henderson (jbhender@umich.edu)
+  + Instructor office: TBD
+  + Instructor office hours: 3-4PM Wednesday, 11:30-12:30 Thursday
+  + GSI: TBD
+  + GSI office hours: TBD, 1720 Chemistry
+
+## Key Dates:
+  + Drop/Add deadline: Sep 25
+  + In-class midterm exam: Tu Oct 24
+  + Project due: TBD
+  + Final Exam: Tu Dec 9 10:30-12:30
+  + No Class: Tu Oct 17 (Study Break), Th Nov 23 (Holiday)
+  + <a href="http://ro.umich.edu/">Office of the Registrar</a>
+  
+## Grading information:
+  + Midterm exam: 20%
+  + Final exam: 20%
+  + Course project: 20%
+  + Homework (~5 sets): 40%
+  
+## Pre-requisites: 
+
+You should have taken an intermediate applied statistics course such as U-M Stat 500, and you should be comfortable programming in at least one programming language.
+
+## Course Description: 
+Statistics 506 covers a variety of topics related to the use of computing for analyzing,
+managing, and presenting data. We will cover the topics below along with several case studies:
+
+  + Overview of computing languages for statistical computing
+  + General computing:
+    - Linux shell and utilities
+    - Version control with git
+    - Literate programming
+    - Testing, verifying, and profiling code
+  + Basic computer architecture and networking
+  + Basic Stata
+  + Basic and advanced R:
+    - R basics
+    - Rmarkdown
+    - Vectorization, functions
+    - dplyr and other tools for split/apply/combine in R
+    - the R package system
+    - Rcpp, using C/C++ within R
+    - parallel and concurrent programming in R
+  + Basic SAS
+  + SQL
+  + Batch computing and job scheduling (PBS)
+  + Distributed computing (Spark/Hadoop)
+
+## Computing Resources
+
+All of the software in this course is available without charge for UM students.
+Some software, such as R, is free and open source and can be installed on your
+personal machine. You should install both R and RStudio as described in steps
+1 and 2 <a href="https://jbhender.github.io/R_Workshop_Prep.html">here</a>. 
