@@ -1,0 +1,98 @@
+---
+title: "Git"
+author: ""
+date: ""
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    include:
+      after_body: footer.html
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Git for Version Control
+
+A version control system is a tool for managing changes to computer code over 
+time by efficiently tracking changes all modifications.  One of the most popular
+version of version control is "git".  Other version control systems such as
+subversion or SVN are also widely used, but "git" has become a de facto standard.
+Git generally is already installed on most linux-like systems.
+
+Version control is essential for projects with multiple people editing
+the same collection of code.  However, it can also help even a single user more 
+effectivley and efficiently manage and document their own scripts and programs.
+
+Read more about version control and git <a href="https://atlassian.com/git/tutorials">here</a>.
+In particular, you should read:
+
+ + <a href="https://atlassian.com/git/tutorials/what-is-version-control">What is version contorl?</a>
+ + <a href="https://atlassian.com/git/tutorials/what-is-git/">What is git?</a>
+ + All the material under <a href="https://atlassian.com/git/tutorials/setting-up-a-repository">Getting Started</a>.
+ 
+## Git from the command line
+
+To begin tracking an existing project, move to the top folder in the
+project tree and type:
+
+```
+git init
+```
+
+To create a local copy of an existing repository:
+
+```
+git clone "url for repo"
+```
+
+For example, to clone the "Stats506_F17" repository from gihtub.com:
+
+```
+git clone https://github.com/jbhender/Stats506_17
+```
+
+
+## Repositories
+
+Git is a "distributed version control system" meaning that all copies are "local".
+When you a version controlled project using git, the project folder is itself
+a respository. You do not ne
+
+However, git is used most effectively with a remote repository.  Remote git
+respositories suach as <a href="https://github.com">github</a> or 
+<a href="https://bitbucket.org">bitbucket</a> are effective means for both backing up
+and sharing the code you write.  It is also a great way to manage work across multiple
+computers, such as a personal laptop and one or more servers.
+
+### git for remote repositories
+
+The following commands are useful for working with a remote repository.
+
+To link a local and remote repository, use `git remote`:
+
+```
+git remote -u origin master 
+```
+
+If you haven't made any local commits and want to bring your local copy up to date
+with the remote repository use, `git pull`. To retrieve remote changes without
+merging into the local repostitory use `git fetch` followed by `git status` or 
+`git diff` to see changes that have been made. You can then use `git merge` or
+`git pull` to finish merging.
+
+After making lcaol
+
+### Caution
+
+When using a remote code repository like github or bitbucket be careful not to
+submit any protected or senstive data. When working with such data, it is 
+especially important to use `git status` before `git pull` to ensure you know
+exactly what will be uploaded to a remote repository.
+
+Similary, when working on a project for someone
+else be sure to check whether there is any concern about sharing the code in a public 
+or private repository.  
