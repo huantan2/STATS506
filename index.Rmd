@@ -12,5 +12,5 @@ output:
 
 <center>
 ## Course Materials 
-<a href="./syllabus.html">Syllabus</a>
+<a href="./Syllabus.html">Syllabus</a>
 </center>
