@@ -37,19 +37,19 @@ In particular, you should read:
 To begin tracking an existing project, move to the top folder in the
 project tree and type:
 
-```
+```bash
 git init
 ```
 
 To create a local copy of an existing repository:
 
-```
+```bash
 git clone "url for repo"
 ```
 
 For example, to clone the "Stats506_F17" repository from gihtub.com:
 
-```
+```bash
 git clone https://github.com/jbhender/Stats506_17
 ```
 
@@ -71,7 +71,7 @@ The following commands are useful for working with a remote repository.
 
 To link a local and remote repository, use `git remote`:
 
-```
+```bash
 git remote -u origin master 
 ```
 
@@ -106,20 +106,20 @@ are a few options you set everywhere you use git:
 Setting your user name an email allows you to omit explicitly specifying them
 when using `git push` and `git pull` to interact with your remote repository.
 
-```
+```bash
 git config --global user.name "jbhender"
 git config --global user.email "jbhender@umich.edu"
 ```
 
 To set your default editor to `emacs` use:
 
-```
+```bash
 git config --global core.editor emacs
 ```
 
 This could also be done in the shell by exporting the `EDITOR` environment variable,
 
-```
+```bash
 export EDITOR=emacs
 echo$EDITOR
 ```
@@ -134,7 +134,7 @@ local repository but not the remote repository for privacy or other reasons.
 You can tell git to ignore such files by including a `.gitignore` file at the top
 of your repositories file tree. For example, running
 
-```
+```bash
 cd ~/My_Repo
 echo "*.csv" > .gitignore
 ```
@@ -146,3 +146,7 @@ to ignore all files with the `.csv` extension.
 Read more about configuring git
 <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration">here</a>.
 
+For routine use of git from your personal computer, you may want to connect to
+your remote repository using `ssh`. Using ssh keys you can connect to GitHub without
+supplying your password for each interaction. Read more 
+<a href="https://help.github.com/articles/connecting-to-github-with-ssh/">here</a>.
