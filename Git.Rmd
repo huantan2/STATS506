@@ -6,8 +6,6 @@ output:
   html_document:
     theme: journal
     highlight: pygments
-    include:
-      after_body: footer.html
     css: styles.css
 ---
 
@@ -21,16 +19,16 @@ A version control system is a tool for managing changes to computer code over
 time by efficiently tracking changes all modifications.  One of the most popular
 version of version control is "git".  Other version control systems such as
 subversion or SVN are also widely used, but "git" has become a de facto standard.
-Git generally is already installed on most linux-like systems.
+Git generally is already installed on most Linux-like systems.
 
 Version control is essential for projects with multiple people editing
 the same collection of code.  However, it can also help even a single user more 
-effectivley and efficiently manage and document their own scripts and programs.
+effectively and efficiently manage and document their own scripts and programs.
 
 Read more about version control and git <a href="https://atlassian.com/git/tutorials">here</a>.
 In particular, you should read:
 
- + <a href="https://atlassian.com/git/tutorials/what-is-version-control">What is version contorl?</a>
+ + <a href="https://atlassian.com/git/tutorials/what-is-version-control">What is version control?</a>
  + <a href="https://atlassian.com/git/tutorials/what-is-git/">What is git?</a>
  + All the material under <a href="https://atlassian.com/git/tutorials/setting-up-a-repository">Getting Started</a>.
  
@@ -55,20 +53,19 @@ For example, to clone the "Stats506_F17" repository from gihtub.com:
 git clone https://github.com/jbhender/Stats506_17
 ```
 
-
 ## Repositories
 
 Git is a "distributed version control system" meaning that all copies are "local".
-When you a version controlled project using git, the project folder is itself
-a respository. You do not ne
+When you begin a version controlled project using git, the project folder is itself
+a repository. You do not need a remote repository to use git. 
 
 However, git is used most effectively with a remote repository.  Remote git
-respositories suach as <a href="https://github.com">github</a> or 
+repositories such as <a href="https://github.com">github</a> or 
 <a href="https://bitbucket.org">bitbucket</a> are effective means for both backing up
 and sharing the code you write.  It is also a great way to manage work across multiple
 computers, such as a personal laptop and one or more servers.
 
-### git for remote repositories
+### Git for remote repositories
 
 The following commands are useful for working with a remote repository.
 
@@ -80,19 +77,72 @@ git remote -u origin master
 
 If you haven't made any local commits and want to bring your local copy up to date
 with the remote repository use, `git pull`. To retrieve remote changes without
-merging into the local repostitory use `git fetch` followed by `git status` or 
+merging into the local repository use `git fetch` followed by `git status` or 
 `git diff` to see changes that have been made. You can then use `git merge` or
 `git pull` to finish merging.
 
-After making lcaol
 
 ### Caution
 
 When using a remote code repository like github or bitbucket be careful not to
-submit any protected or senstive data. When working with such data, it is 
+submit any protected or sensitive data. When working with such data, it is 
 especially important to use `git status` before `git pull` to ensure you know
 exactly what will be uploaded to a remote repository.
 
-Similary, when working on a project for someone
-else be sure to check whether there is any concern about sharing the code in a public 
+Similarly, when working on a project with someone
+else, be sure to check whether there is any concern about sharing the code in a public 
 or private repository.  
+
+## Git Configuration
+
+As with most programs, you can set preferences in git to improve your workflow.
+Specifically, this can be done from the command line using `git config`.  Here
+are a few options you set everywhere you use git:
+
+  + `user.name` - the username for your remote repository,
+  + `email` - associated with your remote repository,
+  + `core.editor` - your preferred text editor (defaults to vi).
+
+Setting your user name an email allows you to omit explicitly specifying them
+when using `git push` and `git pull` to interact with your remote repository.
+
+```
+git config --global user.name "jbhender"
+git config --global user.email "jbhender@umich.edu"
+```
+
+To set your default editor to `emacs` use:
+
+```
+git config --global core.editor emacs
+```
+
+This could also be done in the shell by exporting the `EDITOR` environment variable,
+
+```
+export EDITOR=emacs
+echo$EDITOR
+```
+
+but doing so will affect *all* programs that rely on the `EDITOR` variable.
+
+### Using `.gitignore`
+
+At times you may find you have certain files that you want to keep in your 
+local repository but not the remote repository for privacy or other reasons. 
+
+You can tell git to ignore such files by including a `.gitignore` file at the top
+of your repositories file tree. For example, running
+
+```
+cd ~/My_Repo
+echo "*.csv" > .gitignore
+```
+from the command line will create a `.gitignore` file in `My_Repo` telling git
+to ignore all files with the `.csv` extension.
+
+### Resources
+
+Read more about configuring git
+<a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration">here</a>.
+
