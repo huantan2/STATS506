@@ -70,3 +70,20 @@ All of the software in this course is available without charge for UM students.
 Some software, such as R, is free and open source and can be installed on your
 personal machine. You should install both R and RStudio as described in steps
 1 and 2 <a href="https://jbhender.github.io/R_Workshop_Prep.html">here</a>. 
+
+## Accomdations for students with disabilities
+
+If you think you need an accommodation for a disability, please let me know at your earliest convenience. Some aspects of this course, 
+the assignments, the in-class activities, and the way the course is usually taught may be modified to facilitate your participation and progress. 
+As soon as you make me aware of your needs, we can work with the Services for Students with Disabilities (SSD) office to help us determine appropriate 
+academic accommodations. 
+SSD (734-763-3000; http://ssd.umich.edu)
+ typically recommends accommodations through a Verified Individualized Services and Accommodations (VISA) form. 
+Any information you provide is private and confidential and will be treated as such. 
+
+## Mandatory Reporting and Sexual Misconduct
+
+Title IX prohibits sex discrimination to include sexual misconduct: harassment, domestic and dating violence, sexual assault, and stalking. If you or someone you know has been harassed or assaulted, you can receive confidential support and academic advocacy at the Sexual Assault Prevention and Awareness Center (SAPAC). SAPAC can be contacted on their 24-hour crisis line, 734-936-3333 and online at sapac.umich.edu. Alleged violations can be reported non-confidentially to the Office for Institutional Equity (OIE) at institutional.equity@umich.edu. Reports to law enforcement can be made to University of Michigan Police Department at 734-763-3434.
+
+As an instructor, one of my responsibilities is to help create a safe learning environment on our campus.  I also have a mandatory reporting responsibility. I am required to share information regarding sexual misconduct or information about a crime that may have occurred on U-M's campus with the University. Students may speak to someone confidentially by contacting SAPAC’s Crisis Line at (734) 936-3333.
+
