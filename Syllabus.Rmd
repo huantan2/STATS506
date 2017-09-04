@@ -16,10 +16,10 @@ output:
 ## Contact Information:
 
   + Instructor: James Henderson (jbhender@umich.edu)
-  + Instructor office: TBD
+  + Instructor office: 3570 Rackham
   + Instructor office hours: 3-4PM Wednesday, 11:30-12:30 Thursday
-  + GSI: TBD
-  + GSI office hours: TBD, 1720 Chemistry
+  + GSI: Tim Tu (timtu@umich.edu)  
+  + GSI office hours: MW 6:30-8:00 pm, SLC 1720 Chemistry
 
 ## Key Dates:
   + Drop/Add deadline: Sep 25
@@ -33,7 +33,8 @@ output:
   + Midterm exam: 20%
   + Final exam: 20%
   + Course project: 20%
-  + Homework (~5 sets): 40%
+  + Homework (~5 sets): 30%
+  + Readings & Quizzes: 10%
   
 ## Pre-requisites: 
 
@@ -70,3 +71,30 @@ All of the software in this course is available without charge for UM students.
 Some software, such as R, is free and open source and can be installed on your
 personal machine. You should install both R and RStudio as described in steps
 1 and 2 <a href="https://jbhender.github.io/R_Workshop_Prep.html">here</a>. 
+
+
+## Accommodations for Students with Disabilities
+If you think you need an accommodation for a disability, please let me know at your earliest convenience. Some aspects of this course, the assignments, the in-class activities, and the way the course is usually taught may be modified to facilitate your participation and progress. As soon as you make me aware of your needs, we can work with the Services for Students with Disabilities (SSD) office to help us determine appropriate academic accommodations. SSD (734-763-3000; <a href='http://ssd.umich.edu'>ssd.umich.edu</a>) typically recommends accommodations through a Verified Individualized Services and Accommodations (VISA) form. Any information you provide is private and confidential and will be treated as such.
+
+
+## Academic Integrity
+
+Unless specifically stated otherwise, students are expected to complete homework
+and other assignments independently without copying code or text from other students in
+this course. Students are encouraged to discuss problem sets and to help one another
+with concepts and syntax, but such discussions should not reach the point of 
+representing one student's work as another's.  
+
+Use of materials from other sources should fall within the license for
+those materials and include proper attribution.
+
+For more on acadmeic integrity, please be advised of Rackham policy: <a href='http://www.rackham.umich.edu/policies/academic-policies/section11'>
+http://www.rackham.umich.edu/policies/academic-policies/section11</a>.
+
+
+## Confidentiality and Mandatory Reporting
+As an instructor, one of my responsibilities is to help create a safe learning environment on our campus. I also have a mandatory reporting responsibility.
+It is my goal that you feel able to share information related to your life experiences in classroom discussions, in your written work, and in our one-on-one meetings. I will seek to keep information you share private to the greatest extent possible. However, I am required to share information regarding sexual misconduct or information about a crime that may have occurred on U-M's campus with the University. Students may speak to someone confidentially by contacting SAPAC’s Crisis Line at (734) 936-3333.
+
+## Student Sexual Misconduct Policy
+Title IX prohibits sex discrimination to include sexual misconduct: harassment, domestic and dating violence, sexual assault, and stalking. If you or someone you know has been harassed or assaulted, you can receive confidential support and academic advocacy at the Sexual Assault Prevention and Awareness Center (SAPAC). SAPAC can be contacted on their 24-hour crisis line, 734-936-3333 and online at <a href='https://sapac.umich.edu/'>sapac.umich.edu</a>. Alleged violations can be reported non-confidentially to the Office for Institutional Equity (OIE) at institutional.equity@umich.edu. Reports to law enforcement can be made to University of Michigan Police Department at 734-763-3434.
