@@ -16,6 +16,6 @@ output:
   <div style = "text-align: left; margin-left: 10%; margin-right: 10%">
   <a href="./Syllabus.html">Syllabus</a>
 
-  <a href="./CourseOverview.html">Course Overview</a>
+  <a href="./Course_Overview.html">Course Overview</a>
   </div>
 </div>
