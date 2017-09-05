@@ -1,7 +1,7 @@
 ---
 title: "Stats 506, Statistical Computing - Overview"
 author: "James Henderson, PhD"
-date: "9/2/2017"
+date: "9/5/2017"
 output: 
   ioslides_presentation:
       theme: journal
