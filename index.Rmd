@@ -9,8 +9,13 @@ output:
     css: styles.css
 ---
 
+<div style = "text-align: center; margin-left: 20%; margin-right: 20%; 
+  background-color: beige">
 
-<center>
 ## Course Materials 
-<a href="./Syllabus.html">Syllabus</a>
-</center>
+  <div style = "text-align: left; margin-left: 10%; margin-right: 10%">
+  <a href="./Syllabus.html">Syllabus</a>
+
+  <a href="./CourseOverview.html">Course Overview</a>
+  </div>
+</div>
