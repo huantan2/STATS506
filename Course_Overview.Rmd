@@ -26,7 +26,7 @@ output:
     
   + This course will be organized around a broader view of statistical computing.
 
-## A broad view of statiscal computing
+## A broad view of statistical computing
   
   + This course will take a broader view of statistical computing that
     encompasses the many ways - both routine and specialized - that
@@ -168,7 +168,7 @@ knitr::include_graphics("img/HSR_stats_table.png")
 
 ## Note cards
 
- + On the *lined* side of the notecard, please write:
+ + On the *lined* side of the note card, please write:
  
     - Your full name
     - The name by which you prefer to be called and a phonetic rendering if 
