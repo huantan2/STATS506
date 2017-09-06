@@ -111,7 +111,7 @@ git config --global user.name "jbhender"
 git config --global user.email "jbhender@umich.edu"
 ```
 
-To set your default editor to `emacs` use:
+To set your default editor to `emacs` (substitute an editor of your choice) use:
 
 ```bash
 git config --global core.editor emacs
