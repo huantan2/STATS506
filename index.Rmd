@@ -17,5 +17,7 @@ output:
   <a href="./Syllabus.html">Syllabus</a>
 
   <a href="./Course_Overview.html">Course Overview</a>
+  
+  <a href="./Git.html">Version control using Git</a>
   </div>
 </div>
