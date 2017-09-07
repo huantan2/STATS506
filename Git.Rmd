@@ -69,10 +69,12 @@ computers, such as a personal laptop and one or more servers.
 
 The following commands are useful for working with a remote repository.
 
-To link a local and remote repository, use `git remote`:
+To link a local and remote repository, use `git remote` (this is
+based on github):
 
 ```bash
-git remote -u origin master 
+git remote add origin url_to_remote_repo.git
+git remote -u origin master
 ```
 
 If you haven't made any local commits and want to bring your local copy up to date
