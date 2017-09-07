@@ -50,7 +50,7 @@ git clone "url for repo"
 For example, to clone the "Stats506_F17" repository from gihtub.com:
 
 ```bash
-git clone https://github.com/jbhender/Stats506_17
+git clone https://github.com/jbhender/Stats506_F17
 ```
 
 ## Repositories
