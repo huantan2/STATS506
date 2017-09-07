@@ -111,7 +111,7 @@ git config --global user.name "jbhender"
 git config --global user.email "jbhender@umich.edu"
 ```
 
-To set your default editor to `emacs` (substitute an editor of your choice) use:
+To set your default editor to `emacs` (substitute your choice of editor) use:
 
 ```bash
 git config --global core.editor emacs
@@ -141,7 +141,23 @@ echo "*.csv" > .gitignore
 from the command line will create a `.gitignore` file in `My_Repo` telling git
 to ignore all files with the `.csv` extension.
 
-### Resources
+
+## Markdown
+Markdown is a plain text formatting language that is designed to create (x)html 
+documents using special characters and indentation to specify the desired format
+while remaining easy to read in its raw format.
+
+There are many "flavors" of markdown.  Let's look at a quick tutorial on 
+<a href="https://guides.github.com/features/mastering-markdown/">Github flavored markdown</a>.
+
+This document was written in [Rmarkdown](http://rmarkdown.rstudio.com/)
+using RStudio. You can see the source at [my Stats 506](https://raw.githubusercontent.com/jbhender/Stats506/master/Git.Rmd).
+
+You will learn more about Rmarkdown later in the course.  For now, you should
+familarize yourself with the basic formatting options specified at the page
+we viewed [earlier](<a href="https://guides.github.com/features/mastering-markdown/">).
+
+## Resources
 
 Read more about configuring git
 <a href="https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration">here</a>.
@@ -150,3 +166,12 @@ For routine use of git from your personal computer, you may want to connect to
 your remote repository using `ssh`. Using ssh keys you can connect to GitHub without
 supplying your password for each interaction. Read more 
 <a href="https://help.github.com/articles/connecting-to-github-with-ssh/">here</a>.
+
+## Using `git` for homework
+
+I encourage you to create an account at [github](https://www.github.com) or [bitbucket](https://www.bitbucket.org)
+and to use `git` for your work in this class.  However, please refrain from posting
+solutions to problem sets for this course prior to the due date.  After the due date,
+I suggest you do post your (possibley corrected) code and inlcude a concise description of what you've learned
+in a `Readme.md` written in markdown.  Your repository can serve as a sort of "digital portfolio" 
+for your computing and analysis skills.
