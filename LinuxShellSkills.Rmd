@@ -1,0 +1,137 @@
+---
+title: "Linux Shell Skills"
+author: 
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Readings
+
+The readings below were assigned through Canvas:
+
+1. [Linux Shell Skills](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/linux-shell/)
+from Prof. Shedden's 2016 Course notes
+
+2. [A tmux Primer](https://danielmiessler.com/study/tmux/) by Daniel Meissler
+
+3. [Statistics and Computation Service ](http://www.itcs.umich.edu/scs/) by UM ITS
+
+## Trouble connecting
+
+If you have trouble connecting to the SCS servers please visit this
+[help page](http://www.itcs.umich.edu/scs/access_problems.php).
+
+## Transferring data
+
+There are many ways to transfer data to a remote server using the shell.  Three
+common ways are: 
+  
+  +`scp` to copy to/from your local computer, 
+  
+  +`wget` to download directly from the web, 
+  
+  +`sftp` or 'secure file transfer protocol' for transferring large volumes of data.
+  
+To transfer a single smallish file from the working directory
+on your local machine to your AFS space:
+
+```bash
+scp ./local_file.ext uniqname@scs.dsc.umich.edu:~/remote_directory/
+```
+
+To transfer a file from the remote directory to your local computer reverse
+the arguments:
+
+```bash
+scp uniqname@scs.dsc.umich.edu:~/remote_directory/remote_file.ext ./
+```
+For larger transfers you should use `sftp` for efficiency and to avoid 
+adding strain to the computation servers.
+
+To download data directly from a website to a remote server use a web browser 
+to find the URL to the file and use `wget`:
+
+```bash
+wget https://remote.url.edu/path/to/file/data.txt
+```
+Make sure you are only downloading only from trusted sources!
+
+## Compression and archiving
+
+Large files often contain redundant and can be stored using less space on disk
+in a compressed format.  Depending on the system and the file, compression can make
+reading from or writing to a file more efficient as reading the bits off disk is 
+"I/O bound" while decoding/decompressing is "CPU bound".  This is particularly 
+useful on shared systems with I/O bottlenecks.
+
+### `gzip`
+
+There are man compression tools, one of the most popular is `gzip`. The command,
+
+```bash
+gzip file.txt
+```
+compresses `file.txt` into `file.gz`.
+
+The file can be uncompressed using,
+
+```bash
+gunzip file.gz
+```
+the original extension is stored in the compressed file.
+
+You can retain the compressed copy and unzip directly to standard output using
+the `-c` option:
+
+```bash
+gunzip -c file.gz > file.txt
+```
+
+### `tar`
+
+A *tarball* is an archive of a file tree and often compressed.  This can be useful for
+transferring directories between machine manually.  It is also a way to cleanly
+archive files from projects you would like to retain, but no longer need to use 
+frequently.
+
+The two most common use cases are creating an archive,
+
+```bash
+tar cvfz name.tgz ./parent_folder
+```
+
+and extracting the archive,
+
+```bash
+tar xvfz name.tgz
+```
+
+The extension `.tgz` is short for `.tar.gz` indicating that the archive has been
+compressed using `gzip`.
+
+## Other common commands
+You may at times find the following commands useful:
+
+  + sort - sort a file by on or more fields
+  
+  + cut -  extract select columns from a delimted file
+  
+  + paste - concatenate files line by line 
+  
+  + join - merge two files based on a common field.
+
+We will look at examples
+in class as time permits.
+
+## Shell scripting
+A shell script is a program constructed from shell commands.  You can view
+the example from the first day of class [here](./student_dir.sh).
