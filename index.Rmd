@@ -19,5 +19,7 @@ output:
   <a href="./Course_Overview.html">Course Overview</a>
   
   <a href="./Git.html">Version control using Git</a>
+  
+  <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
   </div>
 </div>
