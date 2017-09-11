@@ -21,5 +21,7 @@ output:
   <a href="./Git.html">Version control using Git</a>
   
   <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
+  
+  <a href="./Short_Introduction_to_Stata.html">A Short Introducton to Stata</a>
   </div>
 </div>
