@@ -1,0 +1,140 @@
+---
+title: "A Short Introduction to Stata"
+author: 
+date: 
+output:
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+## About Stata
+
+[Stata](https://en.wikipedia.org/wiki/Stata) is a statitical software package
+most frequently used for data analysis in academic research. It is especially popular in
+health services research, epidemiology, and various social sciences.  
+
+Two commands that make Stata particularly appealing in these fields are:
+
+  + [margins]() for marginal summaries after estimation,
+
+  + [svy]() for incorporating survey weights into an analysis.
+  
+### Licensing
+Stata is commercial software that requires a license is required for use. As a UM
+student you can use Stata on the SCS servers by typing `stata` at the command line.
+There are a limited number of licenses available, so please do not leave Stata open
+when not in use.  Also be aware that all the licenses could be in use at busy times,
+such as the night before an assignment for this course is due.
+
+### Markdown
+Stata does support [markdown](https://www.stata.com/new-in-stata/markdown/) from version 15, but the most recent version of Stata on the SCS servers is 15:
+
+```bash
+which stata
+ls /usr/local/bin/ | grep "stata"   
+```
+
+### One Data
+
+Stata primarily works with a single rectangular data set with
+observations in rows and variables in columns.  Variables can
+be referred to by name.  
+
+## Using Stata
+
+### Command Syntax
+
+A common pattern for commands in Stata is,
+
+```stata
+/* Template */
+command <variable(s)>, <option>
+
+/* Example */
+command regress A1C BMI, level(99)
+```
+
+where `command` is the name of command followed, when needed,
+by one or more specific variables (columns) to operate on, and then a list of
+options for modifying default behavior.  If you are familiar with functions in 
+languages like `R` or `python` that follow a syntax `f(var1,var2)`
+you can think of commands as rough equivalents with variables being necessary
+arguments and options being, well, *optional* arguments. 
+
+The syntax for specific commands may vary from this pattern and it is a good idea
+to read the help documentation when using a command for the first time:
+
+```stata
+/* Template */
+help <command> 
+
+/* Example */
+help regress
+```
+
+### Stata scripts or `.do` files
+
+A *script* is a set of instructions to a computing language 
+for carrying out a particular purpose such as data preperation or
+analysis. Stata scripts use the extension `.do` and will generally be your
+primary way of interacting with and using Stata.
+
+You can execute a do file by typing, i.e. `stata -b my_analysis.do` at the
+command line or `do my_analysis` within an interactive Stata console.
+
+Scripts serve several purposes:
+
+  1. Serve as a record for how a particular analysis was carried out,
+  
+  2. Communicate to others (including future you `r emo::ji("confused")`) your thought
+     process during an analysis,
+  
+  3. Communicate a set of instructions for what you want Stata *to do*.
+
+When learning a new computing language it is not uncommon to get hung up on item 3, 
+aka *syntax*, at the expense of other purposes a script serves. You can combat 
+this tendency by paying attention to *style* and developing good commenting habits.
+
+Here are some opinions on style in Stata: 
+
+  + [Style is the Essential](https://michaelshill.net/2015/07/31/in-stata-coding-style-is-the-essential/)
+
+  + [Suggestions on Stata Programming Style](http://www.stata-journal.com/sjpdf.html?articlenum=pr0018)
+
+
+### Data Management
+
+
+### Regression
+
+### Macros
+
+###
+
+## Extending Stata
+
+Many Stata commands are defined by [.ado](https://www.stata.com/manuals/u17.pdf)
+ files rather than built into the Stata
+source code.  Some of these commands are user-contributed and you can extend
+the functionality of Stata by obtaining programs written as `.ado` files or writing your own.
+
+Those interested can learn more about programming Stata [here](https://www.stata.com/manuals/u18.pdf).
+
+**Disclaimer**: You will *not* need to know anything about `.ado` files for problem sets
+or exams in this course.
+
+
+## Resources
+
+You may find the following resources useful in learning to use Stata:
+
+  + [Stata documenation](https://www.stata.com/features/documentation/)
+
+
+These notes are based in large part on:
+
+  + [Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/)
+
+  + [Dr. Errickson's CSCAR Workshop Notes](https://github.com/josherrickson/workshop-stata-intro-book/tree/master/stata_markdown)
