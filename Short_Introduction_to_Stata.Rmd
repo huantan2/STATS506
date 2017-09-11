@@ -17,9 +17,11 @@ health services research, epidemiology, and various social sciences.
 
 Two commands that make Stata particularly appealing in these fields are:
 
-  + [margins]() for marginal summaries after estimation,
+  + [margins](https://www3.nd.edu/~rwilliam/stats/Margins01.pdf) for post-estimation
+    summaries such as adjusted predictions and marginal effects,
 
-  + [svy]() for incorporating survey weights into an analysis.
+  + [svy](https://www.stata.com/manuals13/svy.pdf)
+  for incorporating survey weights into an analysis.
   
 ### Licensing
 Stata is commercial software that requires a license is required for use. As a UM
@@ -36,11 +38,30 @@ which stata
 ls /usr/local/bin/ | grep "stata"   
 ```
 
-### One Data
+### One Data, Two Types
 
 Stata primarily works with a single rectangular data set with
 observations in rows and variables in columns.  Variables can
-be referred to by name.  
+be referred to by name.
+
+Stata variables come in two primary *types* - *numeric* and *string*.
+Strings are stored using as `str#` with `#` indicating the maximum length.
+
+Numeric variables come in the following storage types:
+
+Storage Type | Bytes | What
+-------------|-------|-----
+byte | 1 | small integers (up to $2^8- 1=256$)
+int | 2 | big integers (up to $2^16-1$)
+long | 4 | very big integers
+float | 4 | up to 38 decimal places
+double | 8 | up to 323 decimal place
+____________________________________
+
+Stata programs generally prefer / require numeric types.
+
+Running `compress` instructs Stata to switch variables to smaller storage types
+where possible.
 
 ## Using Stata
 
@@ -74,6 +95,20 @@ help <command>
 help regress
 ```
 
+### Basic commands
+
+  + `use`, `sysuse`, `webuse` - load a Stata native `.dta` file into memory
+  + `import delimited` - read delimted data files
+  + `clear` - clear the current data
+  + `save`
+  + `help`
+  + `describe` - overview of the current data set
+  + `list` - list a subset of variables; useful with i.e. `list <var> in 1/10`
+  + `summarize` - compute and display summary statistics
+  + `codebook` - summarize entire dataset
+  + `tabulate` - compute frequency tables
+  + `exit` - quit Stata
+
 ### Stata scripts or `.do` files
 
 A *script* is a set of instructions to a computing language 
@@ -106,12 +141,94 @@ Here are some opinions on style in Stata:
 
 ### Data Management
 
+The following commands are useful for manipulating data in Stata:
+
+ + `keep`, `drop` - keep or drop a subset of variables
+ + `generate` - create a new variable using functions of existing ones
+ + `replace` - replace an existing variable, especially useful with `replace <var> if <condition>`
+ + `label` - change display labels for variables
+ 
+   - `label variable`
+   - `label define`
+   - `label values`
+   - `label data`
+
+ + `encode`, `decode` - use to switch between string and integer representation for categorical variables
+ + `recode` - to recode into different values, i.e $0 \to 1, 1 \to 0$
+
+The data mangagement demonstration from class can be found at: 
+[RECS_prep_subset1.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_prep_subset1.do).
+
+#### Boolean Operators
+
+Boolean operators are useful for generating values conditionally on other values.
+Here are the basics:
+
+ Operator | Meaning 
+-----------|-------
+ & | and
+ \| | or
+== | equal
+!= | not equal
+>, >= | greater than (or equal to)
+<, <= | less than (or equal to)
 
 ### Regression
 
-### Macros
+We will review the regression example from
+[Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/).
 
-###
+The key Stata commands in the demonstration are:
+
+  + `regress <dv> <ivlist>, options` - for computing regression
+  + `display` - for evaluating an expression
+  + `r()` and `e()` - for extracting results from the most recent command
+  + `c.`, `i.` - for instructing Stata how to treat variables
+  + `#`, `##` - for specifying interaction terms
+
+The script from the in-class demonstration can be found at:
+[RECS_survey](https://github.com/jbhender/Stats506/blob/master/Stata/RECS/RECS_Consump_Analysis.do)
+
+Some important data analysis principals:
+
+ + Pay attention to the scale of your variables
+ + Summarize on a natural easy to understand scale
+ + Center variables before creating interactions to reduce collinearity.
+
+### Macros & Programming Statements
+
+In Stata "variable" always refer to a column of the dataset.  However, in programming
+it is also useful to have access to variables of differing dimensions.  
+
+"Macros" serve this role in Stata and are somewhat similar to shell variables in 
+bash and other Linux shells.  A macro is a string that is interspersed into a
+Stata program and evaluated when that program is executed.  The key to understanding 
+and using Stata macros is knowing when they are evaluated.
+
+A local macro can be defined by:
+
+```stata
+local life_questions 42
+```
+
+The value of a macro is retrieved by encapuslation between a backtick "`" and 
+an apostrophe "'":
+
+```stata
+display `life_questions'
+```
+Macros are frequently used in loops:
+
+```stata
+foreach var in varlist yearmade-kwh {
+  summarize `var'
+}
+```
+
+Examples of Stata loops can be found in the data managment script linked above
+and the data merge example here: 
+[RECS_merge.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_merge.do).
+
 
 ## Extending Stata
 
