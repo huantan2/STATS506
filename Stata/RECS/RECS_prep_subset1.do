@@ -16,9 +16,10 @@
 * Script Setup  *
 *---------------*
 version 14.2				// Stata version used
-log using Ex_RECS.log, txt replace 	// Generate a log
+log using Ex_RECS.log, text replace 	// Generate a log
 cd ~/Stats506/Stata    	   		// Working directory
 display "$S_DATE"			// Print system dates
+clear					// Start with a clean session
 
 *------------------*
 * Data preparation *
