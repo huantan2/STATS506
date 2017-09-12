@@ -32,7 +32,7 @@ use RECS_subset1.dta, clear
 *------------------*
 
 // Summarize yearmade by census region
-by regionc: summarize yearmade		// Produces an error if not sorted
+*by regionc: summarize yearmade		// Produces an error if not sorted
 
 sort regionc	      			// Sort and then summarize
 by regionc: summarize yearmade
