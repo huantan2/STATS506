@@ -11,7 +11,7 @@ output:
 
 ## About Stata
 
-[Stata](https://en.wikipedia.org/wiki/Stata) is a statitical software package
+[Stata](https://en.wikipedia.org/wiki/Stata) is a statistical software package
 most frequently used for data analysis in academic research. It is especially popular in
 health services research, epidemiology, and various social sciences.  
 
@@ -24,35 +24,38 @@ Two commands that make Stata particularly appealing in these fields are:
   for incorporating survey weights into an analysis.
   
 ### Licensing
-Stata is commercial software that requires a license is required for use. As a UM
+Stata is commercial software that requires a license for use. As a UM
 student you can use Stata on the SCS servers by typing `stata` at the command line.
 There are a limited number of licenses available, so please do not leave Stata open
 when not in use.  Also be aware that all the licenses could be in use at busy times,
 such as the night before an assignment for this course is due.
 
 ### Markdown
-Stata does support [markdown](https://www.stata.com/new-in-stata/markdown/) from version 15, but the most recent version of Stata on the SCS servers is 15:
+Stata does support [markdown](https://www.stata.com/new-in-stata/markdown/) from version 15, but the most recent version of Stata on the SCS servers is 14:
 
 ```bash
 which stata
 ls /usr/local/bin/ | grep "stata"   
 ```
+Stata 15 is available as a module on the Flux cluster.
+
+**Disclaimer**: You are not required to use Stata markdown.
 
 ### One Data, Two Types
 
 Stata primarily works with a single rectangular data set with
 observations in rows and variables in columns.  Variables can
-be referred to by name.
+be referred to by name and always reference this "master" dataset.
 
 Stata variables come in two primary *types* - *numeric* and *string*.
-Strings are stored using as `str#` with `#` indicating the maximum length.
+Strings are stored as `str#` with `#` indicating the maximum length.
 
 Numeric variables come in the following storage types:
 
 Storage Type | Bytes | What
 -------------|-------|-----
 byte | 1 | small integers (up to $2^8- 1=256$)
-int | 2 | big integers (up to $2^16-1$)
+int | 2 | big integers (up to $2^{16}-1$)
 long | 4 | very big integers
 float | 4 | up to 38 decimal places
 double | 8 | up to 323 decimal place
@@ -98,7 +101,7 @@ help regress
 ### Basic commands
 
   + `use`, `sysuse`, `webuse` - load a Stata native `.dta` file into memory
-  + `import delimited` - read delimted data files
+  + `import delimited` - read delimited data files
   + `clear` - clear the current data
   + `save`
   + `help`
@@ -112,7 +115,7 @@ help regress
 ### Stata scripts or `.do` files
 
 A *script* is a set of instructions to a computing language 
-for carrying out a particular purpose such as data preperation or
+for carrying out a particular purpose such as data preparation or
 analysis. Stata scripts use the extension `.do` and will generally be your
 primary way of interacting with and using Stata.
 
@@ -136,7 +139,7 @@ Here are some opinions on style in Stata:
 
   + [Style is the Essential](https://michaelshill.net/2015/07/31/in-stata-coding-style-is-the-essential/)
 
-  + [Suggestions on Stata Programming Style](http://www.stata-journal.com/sjpdf.html?articlenum=pr0018)
+  + [Suggestions on Stata Programming Style](http://www.stata-journal.com/sjpdf.html?articlenum=pr0018))
 
 
 ### Data Management
@@ -154,10 +157,13 @@ The following commands are useful for manipulating data in Stata:
    - `label data`
 
  + `encode`, `decode` - use to switch between string and integer representation for categorical variables
- + `recode` - to recode into different values, i.e $0 \to 1, 1 \to 0$
+ + `recode` - to re-code into different values, i.e $0 \to 1, 1 \to 0$
 
-The data mangagement demonstration from class can be found at: 
+The data management demonstration from class can be found at: 
 [RECS_prep_subset1.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_prep_subset1.do).
+
+See [Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/)
+for how to obtain the RECS data.
 
 #### Boolean Operators
 
@@ -180,25 +186,25 @@ We will review the regression example from
 
 The key Stata commands in the demonstration are:
 
-  + `regress <dv> <ivlist>, options` - for computing regression
+  + `regress <dv> <ivlist>, options` - for computing regression estimates
   + `display` - for evaluating an expression
   + `r()` and `e()` - for extracting results from the most recent command
   + `c.`, `i.` - for instructing Stata how to treat variables
   + `#`, `##` - for specifying interaction terms
 
 The script from the in-class demonstration can be found at:
-[RECS_survey](https://github.com/jbhender/Stats506/blob/master/Stata/RECS/RECS_Consump_Analysis.do)
+[RECS_Consump_Analysis.do](https://github.com/jbhender/Stats506/blob/master/Stata/RECS/RECS_Consump_Analysis.do)
 
 Some important data analysis principals:
 
  + Pay attention to the scale of your variables
- + Summarize on a natural easy to understand scale
- + Center variables before creating interactions to reduce collinearity.
+ + Summarize on a natural and easy-to-understand scale
+ + Center variables before creating interactions to reduce colinearity.
 
 ### Macros & Programming Statements
 
-In Stata "variable" always refer to a column of the dataset.  However, in programming
-it is also useful to have access to variables of differing dimensions.  
+In Stata "variable" always refers to a column of the dataset.  However, in programming
+it is also useful to have access to variables in the general sense.  
 
 "Macros" serve this role in Stata and are somewhat similar to shell variables in 
 bash and other Linux shells.  A macro is a string that is interspersed into a
@@ -211,7 +217,7 @@ A local macro can be defined by:
 local life_questions 42
 ```
 
-The value of a macro is retrieved by encapuslation between a backtick "`" and 
+The value of a macro is retrieved by encapsulation between a back tick "`" and 
 an apostrophe "'":
 
 ```stata
@@ -225,7 +231,7 @@ foreach var in varlist yearmade-kwh {
 }
 ```
 
-Examples of Stata loops can be found in the data managment script linked above
+Examples of Stata loops can be found in the data management script linked above
 and the data merge example here: 
 [RECS_merge.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_merge.do).
 
