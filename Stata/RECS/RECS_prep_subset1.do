@@ -17,8 +17,8 @@
 *---------------*
 version 14.2				// Stata version used
 log using Ex_RECS.log, text replace 	// Generate a log
-cd ~/Stats506/Stata    	   		// Working directory
-display "$S_DATE"			// Print system dates
+*cd ~/Stats506/Stata    	   		// Working directory
+*display "$S_DATE"			// Print system dates
 clear					// Start with a clean session
 
 *------------------*
@@ -41,23 +41,21 @@ label variable regionc "Census Region"
 label variable ur "Urban or Rural"
 label variable yearmade "Year Constructed"
 label variable totsqft "Total Square Feet"
-label varaible kwh "Energy Consumption (kwh)"
+label variable kwh "Energy Consumption (kwh)"
 
 // Generate new variables
 
 ** Urban Rural
 generate urban = 1 if ur=="U"		// Stata prefers numeric types
 replace urban = 0 if ur=="R"
-label define urban_rural 0 "Rural" 1 "Urban"
-label values urban urban_rural
-label variable urban "Urban / Rural"
 
 ** Next variable
 /* Mix comment types for different purposes, not arbitrarily */ 
 
 // Label values 
-label define urban_rural U "Urban" R "Rural"
-label values ur urban_rural
+label define urban_rural 0 "Rural" 1 "Urban"
+label values urban urban_rural
+label variable urban "Urban / Rural"
 
 // Compress will use smaller storage types where possible
 compress
@@ -92,7 +90,7 @@ egen logkwh_z = std(log(kwh))
 drop *_z			// Note the wildcard
 
 // Save in Stata native dta format
-save RECS_subset1.dta, clear
+save RECS_subset1.dta, replace
 
 *-----------------*
 * Script Cleanup  *

@@ -17,6 +17,7 @@
 version 14.2				// Stata version used
 log using RECS_merge.log, text replace 	// Generate a log
 cd ~/Stats506/Stata/RECS   	    	// Working directory
+*cd \\afs\umich.edu\users\j\b\jbhender\Stats506\Stata\Recs // Windows path for MiDesktop
 clear					// Start clean
 
 *------------------*

@@ -17,9 +17,9 @@
 * Script Setup  *
 *---------------*
 version 14.2				// Stata version used
+cd \\afs\umich.edu\user\j\b\jbhender\Stats506\Stata\RECS // Working Directory
 log using RECS_Consump_Analysis.log, /// line break comment
  text replace				// Generates a log
-cd ~/Stats506/Stata    	   		// Working directory
 set more off				// Don't page results
 
 // Load existing stata dataset
@@ -30,6 +30,10 @@ use RECS_subset1.dta, clear
 *------------------*
 * Data Exploration *
 *------------------*
+
+// Label Census Region
+label define region_codes 1 "NE" 2 "MW" 3 "S" 4 "W", replace
+label values regionc region_codes
 
 // Summarize yearmade by census region
 *by regionc: summarize yearmade		// Produces an error if not sorted
@@ -47,32 +51,47 @@ display r(mean)
 *------------*
 * Regression * 
 *------------*
+// simple linear regression
 regress kwh yearmade
 display e(r2_a)				// adjusted R-squared
 
-regress kwh yearmade totsqf
+// make year & constant more interpretable
+generate year_since1920 = yearmade - 1920
+label variable year_since1920 "Year Constructed"
+
+// multiple regression
+regress kwh year_since1920 totsqf
 display %3.1f 100*e(r2_a)
 
-regress kwh yearmade c.totsqf i.regionc // use prefix to specify
+regress kwh year_since1920 c.totsqf i.regionc // use prefix to specify
 	    	          		// continuous(c.) / categorical(i.)
 
 // log transform
 generate lkwh = log(kwh)
 label variable lkwh "Log KWH"
 
-regress lkwh yearmade totsqf i.regionc
+regress lkwh year_since1920 totsqf i.regionc
+
+// Ask for exponentiated coefficients
+regress lkwh year_since1920 totsqf i.regionc, eform("%Change")
 
 // interactions
-regress lkwh c.totsqf##c.yearmade i.regionc, eform("%Change")
+regress lkwh c.totsqf##c.year_since1920 i.regionc, eform("%Change")
 
-regress lkwh c.totsqf c.yearmade i.regionc \\\
-  c.yearmade#i.regionc, eform("%Change")
+regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
+  c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
+
+ regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
+  c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
 
 /* Good practice to center variables before interacting them */
 
 // Check correlations with interaction term 
 generate year_sqft = yearmade*totsqf
 correlate yearmade totsqf year_sqft
+
+generate year1920_sqft = year_since1920*totsqft
+correlate year_since1920 totsqf year1920_sqft
 
 // Center year and scale by 10
 quietly summarize yearmade
