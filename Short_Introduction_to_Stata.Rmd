@@ -8,6 +8,8 @@ output:
     highlight: pygments
     css: styles.css
 ---
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
 
 ## About Stata
 
@@ -54,7 +56,7 @@ Numeric variables come in the following storage types:
 
 Storage Type | Bytes | What
 -------------|-------|-----
-byte | 1 | small integers (up to $2^8- 1=256$)
+byte | 1 | small integers (up to $2^8- 1=255$)
 int | 2 | big integers (up to $2^{16}-1$)
 long | 4 | very big integers
 float | 4 | up to 38 decimal places
@@ -286,3 +288,5 @@ These notes are based in large part on:
   + [Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/)
 
   + [Dr. Errickson's CSCAR Workshop Notes](https://github.com/josherrickson/workshop-stata-intro-book/tree/master/stata_markdown)
+  
+[Course Homepage](https://jbhender.github.io/Stats506/)
