@@ -213,6 +213,10 @@ The key Stata commands in the demonstration are:
 The script from the in-class demonstration can be found at:
 [RECS_Consump_Analysis.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_Consump_Analysis.do)
 
+The script is likely more useful and readable, but
+a log from the live demonstration is also available here: [RECS_Consump_Analysis_14Sep2017.txt](./RECS_Consump_Analysis_14Sep2017.txt) 
+
+
 Some important data analysis principals:
 
  + Pay attention to the scale of your variables
@@ -241,6 +245,9 @@ an apostrophe ':
 ```stata
 display `life_questions'
 ```
+
+The live demonstration of macros from class is available here [macros_14Sep2017.txt](./macros_14Sep2017.txt)
+
 Macros are frequently used in loops:
 
 ```stata
@@ -273,7 +280,11 @@ Links to the in-class demonstrations:
 
   + Data management: [RECS_prep_subset1.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_prep_subset1.do)
   
-  + Regression: [RECS_Consump_Analysis.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_Consump_Analysis.do)
+  + Macros: [macros_14Sep2017.txt](./macros_14Sep2017.txt)
+  
+  + Regression: [RECS_Consump_Analysis.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_Consump_Analysis.do) 
+  [RECS_Consump_Analysis_14Sep2017.txt](./RECS_Consump_Analysis_14Sep2017.txt) 
+
   
   + Merging data: [RECS_merge.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_merge.do).
 

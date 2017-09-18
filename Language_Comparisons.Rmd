@@ -55,6 +55,9 @@ data structures typified by the `data.frame` and `tibble` classes.
 | generalized linear models | glm(), family() | - | logit/logistic, poisson, etc.|
 
 ### Visualize
-|Description | R (base) | R (libraries) | Stata | 
 
+
+|Description | R (base) | R (libraries) | Stata | 
+|--------------------------|-------------|-------------|-------------|
+| scatter plots | `plot(x,y)` | **ggplot2**: `ggplot(aes(x=x,y=y)) + geom_point()` | twoway scatter |
 [Course Homepage]("./index.html")
