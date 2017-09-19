@@ -1,0 +1,58 @@
+---
+title: "Learning is a shared responsibility"
+author: "James Henderson, PhD"
+date: "9/19/2017"
+output: ioslides_presentation
+---
+
+## Demonstrations and examples
+
+ + If you find it difficult to keep up during the in-class demonstrations consider:
+    
+    - Putting your computer away and focusing on the key commands or concepts being demonstrated.
+    
+    - Asking questions in class or jotting down questions to research / ask later.
+    
+    - Work out syntax and details at your own pace after class.
+
+ + I plan to cover topics in more depth at the expense of breadth. You will
+ have to make up for the lack of breadth through reading and exercises.
+
+## Working through examples
+
+ + After each class, find time to work through the examples discussed in class.
+ 
+ + If you are working remotely (on a server) log-on and move to a directory you've 
+ created to organize your work, i.e. 
+
+ ```
+   cd Stats506/Stata/
+ ```  
+ 
+ + Refer to the first reading assignment or ask in office hours for help with this.
+
+ + Visit the course website and copy the address of a script.
+ 
+ + Use `wget` to download the script to your local directory.
+ 
+ + Open the relevant program (i.e. Stata, R, etc) and work through the script line by line.
+ Use help to understand the syntax.
+
+## Expectations
+
+ + Questions about syntax should be asked:
+    
+    - When a command is being introduced or used in class 
+    - In office hours, **after** reading the documentation and/or performing
+    and internet search.
+    
+ + Think about the scope of your question:
+ 
+    - Is it relevant to the current topic? 
+    
+        + Yes $\to$ ask now
+       
+        + No $\to$ ask later
+
+    - Am I likely to find the answer on my own? If "yes" try do so first and then ask
+    if you're still unsure after some research.
