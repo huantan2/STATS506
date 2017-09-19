@@ -45,7 +45,7 @@ data structures typified by the `data.frame` and `tibble` classes.
 |Description | R (base) | R (libraries) | Stata | 
 |--------------------------|-------------|-------------|-------------|
 | create variables | direct assignment: `<-`,`=` | **dplyr**: mutate | generate |
-| drop or modify existing variables |  direct assignment of: `<- NULL`, `= NULL` | **dplyr**: mutate, trasnmute | drop, replace, keep
+| drop or modify existing variables |  direct assignment of: `<- NULL`, `= NULL` | **dplyr**: mutate, transmute | drop, replace, keep
 | compute summaries for subgroups | aggregate | **dplyr**: group_by() %>% summarize() | collapse |
 
 ### Model
