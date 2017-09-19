@@ -461,6 +461,11 @@ cases2 = function(x) {
 cases(8)
 ```
 
+A `switch` can also be used with a numeric expression,
+```{r}
+for(i in c(-1:3, 9))  print(switch(i, 1, 2 , 3, 4))
+```
+
 Here is a more useful example:
 ```{r}
 mySummary <- function(x){
@@ -475,6 +480,30 @@ for ( var in names(iris) ) {
 }
 ```
 
+##### practice
+
+1. Read the R code below and determine the value of `twos` and `threes` at the end.
+
+```r
+twos = 0
+threes = 0
+for (i in 1:10) {
+  if (i %% 2 == 0) {
+    twos = twos + i
+  } else if (i %% 3 = 0) {
+    threes = threes + i 
+  }
+}
+```
+
+2. Read the R code below and determine the value of `x` at the end.
+
+```r
+x
+for (i in 1:10) {
+  x = x + switch(i %% 3, 1, 5, 10)
+}
+```
 
 #### Control Statments {.tabset}
 
