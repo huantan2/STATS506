@@ -8,6 +8,7 @@ output:
     highlight: pygments
     css: styles.css
 ---
+[Course Homepage](https://jbhender.github.io/Stats506/)
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -177,3 +178,5 @@ solutions to problem sets for this course prior to the due date.  After the due 
 I suggest you do post your (possibley corrected) code and inlcude a concise description of what you've learned
 in a `Readme.md` written in markdown.  Your repository can serve as a sort of "digital portfolio" 
 for your computing and analysis skills.
+
+[Course Homepage](https://jbhender.github.io/Stats506/)

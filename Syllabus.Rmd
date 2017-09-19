@@ -1,6 +1,6 @@
 ---
-title: "<a href='./index.html'>Stats 506, Statistical Computing</a>"
-author:
+title: "<a href='./index.html'>Statistics 506, Fall 2017</a>"
+author: Statistical Computing
 date: 
 output: 
   html_document:

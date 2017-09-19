@@ -8,6 +8,7 @@ output:
     highlight: pygments
     css: styles.css
 ---
+[Course Homepage](https://jbhender.github.io/Stats506/)
 
 ## Instructions
 

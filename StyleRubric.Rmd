@@ -8,6 +8,7 @@ output:
     highlight: pygments
     css: styles.css
 ---
+[Course Homepage](https://jbhender.github.io/Stats506/)
 
 ## About
 Style is an important element of writing useful scripts for statistical computing.

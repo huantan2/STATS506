@@ -9,14 +9,14 @@ output: html_document
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-[Course Homepage]("./index.html")
+[Course Homepage](https://jbhender.github.io/Stats506/)
 
 ## About this page
 This page presents a collection of tables organizing commonly used commands from
 various statistical programming languages.  The tables are organized according to 
-Hadley Wicham's [model](http://r4ds.had.co.nz/introduction.html) for a data science program:
+Hadley Wickham's [model](http://r4ds.had.co.nz/introduction.html) for a data science program:
 
-![](./img/Program_Model_HW.png){}
+![](./img/Program_Model_HW.png)
 
 This is a working document which will be updated throughout the course.  If there are
 functions here you are unfamiliar with it would be a good idea to read the documentation
@@ -60,4 +60,5 @@ data structures typified by the `data.frame` and `tibble` classes.
 |Description | R (base) | R (libraries) | Stata | 
 |--------------------------|-------------|-------------|-------------|
 | scatter plots | `plot(x,y)` | **ggplot2**: `ggplot(aes(x=x,y=y)) + geom_point()` | twoway scatter |
-[Course Homepage]("./index.html")
+
+[Course Homepage](https://jbhender.github.io/Stats506/)
