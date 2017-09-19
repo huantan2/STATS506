@@ -106,8 +106,8 @@ z / x
 z^2
 z + 2*c(y,x) - 10  
 
-11 %% 2   # Modular arithmetic
-11 %/% 2 # Integer division returns remainder
+11 %% 2   # Modular arithmetic (i.e. what is the remainder)
+11 %/% 2  # Integer division discards the remainder 
 ```
 
 Be careful about mixing vectors of different lengths as **R** will generally
@@ -492,7 +492,7 @@ threes = 0
 for (i in 1:10) {
   if (i %% 2 == 0) {
     twos = twos + i
-  } else if (i %% 3 = 0) {
+  } else if (i %% 3 == 0) {
     threes = threes + i 
   }
 }
@@ -501,9 +501,9 @@ for (i in 1:10) {
 2. Read the R code below and determine the value of `x` at the end.
 
 ```r
-x
+x = 0
 for (i in 1:10) {
-  x = x + switch(i %% 3, 1, 5, 10)
+  x = x + switch(1 + {i %% 3}, 1, 5, 10)
 }
 ```
 
