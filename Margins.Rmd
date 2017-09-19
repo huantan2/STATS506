@@ -1,0 +1,12 @@
+---
+title: "Post-estimation Summaries for Regression"
+author: "James Henderson, PhD"
+date: "9/18/2017"
+output: html_document
+---
+
+## Post-estimation Summaries
+
+
+
+### 
