@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## About R
 
 ```{r, out.width="100px", out.height="100px", echo=FALSE}
-knitr::include_graphics("./img/Rlogo.png")
+#knitr::include_graphics("./img/Rlogo.png")
 ```
 
 As decribed by [The R Foundation](https://www.r-project.org/about.html), 
@@ -42,23 +42,23 @@ Based on the computing experience survey, most of you have used R before:
 
 <div style = "text-align: center;">
 ```{r, out.width="600px", out.height="100px", echo=FALSE}
-knitr::include_graphics("./img/SurveyR.png")
+#knitr::include_graphics("./img/SurveyR.png")
 ```
 </div>
 
 As such, we will skip some of the basics and move quickly through other introductory 
-material.  If you 
+material. 
 
 ## Topics {.tabset}
 ### R Basics {.tabset}
 
-#### Lesson 1: Getting Started
+#### Getting Started
 ##### Objectves
   + Understand:
-      + How objects are created and used
+      + How objects are created and used.
   + Be able to:
-      + View and clear the global environment
-      + Use **R** for simple arithmetic calculations
+      + View and clear the global environment.
+      + Use **R** for simple arithmetic calculations.
 
 ##### Objects
 Everything in **R** is an object that can be referred to by name. We create
@@ -174,4 +174,253 @@ unname(z)
 ```
 
 Use `quit()` to quit **R**. Use `help()` or `?function` to get help.
+
+#### Functions
+
+##### Objectves
+  + Understand:
+      + How **R** knows to interpret something as a function. 
+      + How arguments passed to functions are interpreted.
+  + Be able to:
+      + Write and call a function.
+
+##### Functions
+As we saw in "Getting Started", **R** 
+identifies functions by the 'func()' construction. Functions 
+are simply collections of commands that do something.  Functions take *arguments* 
+which can be used to specify *which* objects to operate on and *what* values of parameters
+are used. You can use 'help(func)' to see what a function is used for and what arguments it expects, i.e. `help(sprintf)`.
+
+Functions will often have multiple arguments.  Some arguments have default values, others do not.
+All arguments without default values must be passed to a function. 
+Arguments can be passed by name or position. For instance,
+
+```{r,14}
+x <- runif(n=5, min=0, max=1)
+y <- runif(5, 0, 1)
+z <- runif(5)
+round(cbind(x, y, z), 1)
+```
+both generate 5 numbers from a Uniform(0,1) distribution.  
+
+Arguments passed by name need not be in order:
+```{r,15}
+w <- runif(min=0, max=1, n=5)
+u <- runif(min=0, max=1, 5) # This also works but is bad style. 
+round(rbind(u=u, w=w), 1)
+```
+
+##### Writing Functions
+You can create your own functions in **R**. Use functions for tasks that you repeat
+often in order to make your scripts more easily readable and modifiable. A good rule
+of thumb is never to copy an paste more than twice; use a function instead.  It can
+also be a good practice to use functions to break complex processes into parts, especially
+if these parts are used with control flow statements such as loops or conditionals.
+
+```{r,16-z-score1}
+# function to compute z-scores
+zScore1 <- function(x){
+  xbar <- mean(x)
+  s <- sd(x)
+  z <- ( x - mean(x) ) / s
+  return(z)  
+}
+```
+
+The return statement is not strictly necessary, but can make complex functions more
+readable. It is good practice to avoid creating intermediate objects to store values only used once.  
+```{r,17-z-score2}
+# function to compute z-scores
+zScore2 <- function(x){
+  { x - mean(x) } / sd(x)
+}
+```
+
+```{r,18}
+x <- rnorm(10,3,1) ## generate some normally distributed values
+round(cbind(x, 'Z1'=zScore1(x), 'Z2'=zScore2(x)), 1)
+```
+
+##### Default parameters
+We can set default values for parameters using the construction 'parameter = xx' in the 
+function definition.
+
+```{r,19-z-score3}
+# function to compute z-scores
+zScore3 <- function(x, na.rm=T){
+  { x - mean(x, na.rm=na.rm) } / sd(x, na.rm=na.rm)
+}
+```
+
+```{r,20}
+x <- c(NA,x,NA)
+round(cbind(x,'Z1'=zScore1(x),'Z2'=zScore2(x),'Z3'=zScore3(x)),1)
+```
+
+#### Control Statments {.tabset}
+
+##### for loops
+Here is the syntax for a basic for loop in **R**
+
+```{r}
+for ( i in 1:10 ) {
+   cat(i,'\n')
+}
+```
+
+Note that the loop and the *iterator* are evaluated within the global environment.cas
+
+```{r}
+for ( var in names(mtcars) ){
+  cat( sprintf('average %s = %4.3f',var, mean(mtcars[,var])), '\n')
+}
+```
+
+##### while 
+A while statement can be useful when you aren't sure how many iterations are needed.  
+Here is an example that takes a random walk and terminates if the value is
+more than 10 units from 0.
+
+```{r}
+maxIter <- 1e3 # always limit the total iterations allowed
+val = vector(mode='numeric', length=maxIter)
+val[1] = rnorm(1) ## intialize
+k = 1
+while ( abs(val[k]) < 10 & k <= maxIter ) {
+  val[k+1] = val[k] + rnorm(1)
+  k = k + 1
+}
+val = val[1:{k-1}]
+plot(val, type='l')
+```
+
+##### switch
+Use a switch when you have two or more discrete options.
+
+Here is a simple example:
+```{r}
+cases = function(x) {
+  switch(as.character(x),
+    a=1,
+    b=2,
+    c=3,
+    "Neither a, b, nor c."
+  )
+}
+cases("a")
+cases("m")
+cases(8)
+```
+
+Without the coercion, the final call will evaluate to `NULL`.
+
+```{r}
+cases2 = function(x) {
+  switch(x,
+    a=1,
+    b=2,
+    c=3,
+    "Neither a, b, nor c."
+  )
+}
+cases(8)
+```
+
+Here is a more useful example:
+```{r}
+mySummary <- function(x){
+  switch(class(x),
+         factor=table(x),
+         numeric=sprintf('mean=%4.2f,sd=%4.2f', mean(x), sd(x)),
+          'Only defined for factor and numeric classes.')
+}
+for ( var in names(iris) ) {
+  cat(var, ':\n', sep='')
+  print( mySummary(iris[,var]) )
+}
+```
+
+##### Practice
+The Fibonacci sequence starts 1, 1, 2, ... and continues with each new value formed by adding the two previous values.
+
+1. Write a function 'Fib1' which takes an argument 'n' and returns the $n^{th}$ value of the Fibonacci sequence. Use a for loop in the function.
+
+2. Write a function 'Fib2' which does the same thing using a while loop.
+
+3. Use a switch to write a function that has a parameter `loop = c('for', 'while')` for calling either `Fib1` or `Fib2`.
+
+### Packages 
+
+#### Objectives:
+  + Understand:
+    + Basics of the **R** package system
+    + What it means for a function to be 'masked'
+  + Be able to:
+    + Install packages
+    + Make a package available to R
+    + Call functions from packages without loading
+    + Remove packages
+
+#### The **R** package system
+
+Much of the utility of **R** is derived from an extensive collection of user
+and domain-expert contributed packages. Packages are simply a standardized way
+for people to share *documented* code and data. There are thousands of packages!
+
+Packages are primarily distributed through three sources:
+
+  + [CRAN](https://cran.r-project.org/) 
+  + [Github](http://r-pkgs.had.co.nz/git.html)
+  + [Bioconductor](https://www.bioconductor.org/)
+
+##### Installing packages
+The primary way to install a package is using 'install.packages("pkg")'.
+```{r,21}
+#install.packages('lme4') # the package name should be passed as a character string
+```
+
+You can find the default location for your **R** packages using the `.libPaths()`
+function. If you don't have write permission to this folder, you can set this directory
+to a personal library instead.
+```{r,22}
+.libPaths() ## The default library location
+.libPaths('/Users/jbhender/Rlib') #Create the directory first!
+.libPaths()
+```
+To install a package to a personal library use the 'lib' option.
+```{r,23}
+## install.packages("haven",lib='/Users/jbhender/Rlib')
+```
+
+If your computer has the necessary tools, packages can also be installed from source by downloading the package file and pointing directly to the source tar ball ('.tgz') or Windows binary.  
+
+#### Using packages in **R**
+Installing a package does not make it available to **R**! There are two ways to
+use things from a package: 
+
+  + calling `library("pkg")` to add it to the search path
+  + using the `pkg::function` construction.
+
+These methods are illustrated below using the data set 'InstEval' distributed
+with the 'lme4' package.
+
+```{r,24}
+#head(InstEval)
+## Using the pkg::function construction
+head(lme4::InstEval)
+```
+
+The `library("pkg")` command adds a package to the search path.
+```{r,25}
+search()
+library(lme4)
+search()
+head(InstEval)
+```
+
+To remove a library from the search path use `detach("package:pkg", unload=TRUE)`.
+```{r,26}
+detach(package:lme4, unload=TRUE)
+search()
+```
 
