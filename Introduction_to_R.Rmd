@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## About R
 
 ```{r, out.width="100px", out.height="100px", echo=FALSE}
-#knitr::include_graphics("./img/Rlogo.png")
+knitr::include_graphics("./img/Rlogo.png")
 ```
 
 As decribed by [The R Foundation](https://www.r-project.org/about.html), 
@@ -42,7 +42,7 @@ Based on the computing experience survey, most of you have used R before:
 
 <div style = "text-align: center;">
 ```{r, out.width="600px", out.height="100px", echo=FALSE}
-#knitr::include_graphics("./img/SurveyR.png")
+knitr::include_graphics("./img/SurveyR.png")
 ```
 </div>
 
@@ -81,7 +81,11 @@ The values can be referred to by the object name:
 TheAnswer
 ```
 
-Objects are stored by value and __not__ by reference:
+Objects can be any syntacticaly [valid](https://stat.ethz.ch/R-manual/R-devel/library/base/html/make.names.html)
+name. You should, however, avoid clobbering built in `R` names such as `pi`, `mean` or `sum`.
+You also should not use [reserved words](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Reserved.html) when naming objects.
+
+Finally, it is important to remember that in **R** objects are stored by value and __not__ by reference:
 ```{r,3}
 z <- c(x,y)
 c(x,y,z)
@@ -175,6 +179,100 @@ unname(z)
 
 Use `quit()` to quit **R**. Use `help()` or `?function` to get help.
 
+#### Logicals & Indexing
+
+##### Logicals
+
+**R** has three reserved words of type 'logical':
+
+```{r}
+typeof(TRUE)
+typeof(FALSE)
+typeof(NA)
+if(TRUE && T){
+  print('Synonyms')
+}
+if(FALSE || F){
+  print('Synonyms')
+}
+```
+
+While 'T' and 'F' are equivalent to 'TRUE' and 'FALSE' it is best to always 
+use the full words. You should also avoid using 'T' or 'F' as names for objects or
+function arguments.
+
+##### Boolean comparisons
+
+Boolean operators are useful for generating values conditionally on other values.
+Here are the basics:
+
+ Operator | Meaning 
+-----------|-------
+`==` | equal
+`!=` | not equal
+`>`, `>=` | greater than (or equal to)
+`<`, `<=` | less than (or equal to)
+ `&&` | scalar AND
+ `||` | scalar OR
+ `&` | vectorized AND
+ `|` | vectorized OR
+ `!`  | negation (`!TRUE == FALSE` and `!FALSE == TRUE`)
+ `any()` | are ANY of the elements true
+ `all()` | are ALL of the elements true
+ 
+Logicals are created by Boolean comparisons:
+
+```{r}
+{2*3} == 6     # test equality with ==
+{2+2} != 5     # use != for 'not equal'
+sqrt(69) > 8   # comparison operators: >, >=, <, <=
+sqrt(64) >= 8  
+!{2==3}        # Use not to negate or 'flip' a logical
+```
+
+Comparison operators are vectorized:
+```{r}
+1:10 > 5
+```
+
+You can can combine operators using 'and (&&)' or 'or (||)':
+```{r}
+{2+2}==4 | {2+2}==5 # An or statement asks if either statement is true
+{2+2}==4 & {2+2}==5 # And requires both to be true
+```
+
+Note the difference between the single and double versions:
+
+```{r}
+even <- {1:10 %% 2} == 0
+div4 <- {1:10 %% 4} == 0
+
+even | div4
+even || div4
+
+even & div4
+even && div4
+```
+
+Use `any` or `all` to efficiently check for the presence of any `TRUE` or `FALSE`.
+```{r}
+any(even)
+all(even)
+```
+
+##### Using which
+The 'which()' function returns the elements of a logical vector that return true:
+```{r}
+which({1:5}^2 > 10)
+```
+
+A combination of which and logicals can be used to subset data frames:
+
+```{r}
+head(mtcars)
+mtcars[which(mtcars$mpg>30),]
+```
+
 #### Functions
 
 ##### Objectves
@@ -190,6 +288,9 @@ identifies functions by the 'func()' construction. Functions
 are simply collections of commands that do something.  Functions take *arguments* 
 which can be used to specify *which* objects to operate on and *what* values of parameters
 are used. You can use 'help(func)' to see what a function is used for and what arguments it expects, i.e. `help(sprintf)`.
+
+
+##### Arguments
 
 Functions will often have multiple arguments.  Some arguments have default values, others do not.
 All arguments without default values must be passed to a function. 
@@ -257,45 +358,79 @@ x <- c(NA,x,NA)
 round(cbind(x,'Z1'=zScore1(x),'Z2'=zScore2(x),'Z3'=zScore3(x)),1)
 ```
 
-#### Control Statments {.tabset}
+##### Resources
+Read more about functions [here](http://r4ds.had.co.nz/functions.html) and [here](http://adv-r.had.co.nz/Functions.html#lazy-evaluation).
 
-##### for loops
-Here is the syntax for a basic for loop in **R**
+The second link is to Chapter 6 from the optional text "Advanced R".
+
+You can also read much more about functions in Chapter 7 of "The Art of R Programming."
+
+#### Conditionals
+In programming, we often need to execute a piece of code only if some condition is
+true.  Here are some of the **R** tools for doing this.
+
+##### if statements
+The workhorse for conditional execution in **R** is the `if` statement.  In the syntax below, note
+the spacing around the condtion enclosed in the parantheses.  
 
 ```{r}
-for ( i in 1:10 ) {
-   cat(i,'\n')
+if (TRUE) {
+  print('do something if true')
 }
 ```
 
-Note that the loop and the *iterator* are evaluated within the global environment.cas
-
+There are different opions on whether to use the above or this:
 ```{r}
-for ( var in names(mtcars) ){
-  cat( sprintf('average %s = %4.3f',var, mean(mtcars[,var])), '\n')
+if(TRUE){
+  print('do something if true')
 }
 ```
 
-##### while 
-A while statement can be useful when you aren't sure how many iterations are needed.  
-Here is an example that takes a random walk and terminates if the value is
-more than 10 units from 0.
+You can choose a style of your choosing, but be _consistent_. Occasionally,
+with short statements it can be idomatic to include the condition on the same line
+without the braces:
 
 ```{r}
-maxIter <- 1e3 # always limit the total iterations allowed
-val = vector(mode='numeric', length=maxIter)
-val[1] = rnorm(1) ## intialize
-k = 1
-while ( abs(val[k]) < 10 & k <= maxIter ) {
-  val[k+1] = val[k] + rnorm(1)
-  k = k + 1
-}
-val = val[1:{k-1}]
-plot(val, type='l')
+if(TRUE) print('do something if true')
 ```
+
+Use an `else` to control the flow without separately checking the conditon's negation:
+```{r}
+if ({2+2}==5) {
+  print('the statement is true')
+} else {
+  print('the statement is false')
+}
+
+result <- c(4,5)
+report = ifelse({2+2}==result, 'true', 'false')
+report
+```
+
+As you can see above, there is also an `ifelse` function that can be useful. 
+
+For more complex cases, you may want to check multiple condtions:
+
+```{r}
+a = -1
+b = 1
+if (a*b > 0) {
+  print('Zero is not between a and b')
+} else if (a < b) {
+    smaller = a
+    larger = b
+} else {
+    smaller = b
+    larger  = a
+}
+
+```
+
+In all of the examples above, please pay close attention to the use 
+of indentation for clariy. 
 
 ##### switch
-Use a switch when you have two or more discrete options.
+Use a switch when you have mulitple discrete options.
 
 Here is a simple example:
 ```{r}
@@ -340,7 +475,71 @@ for ( var in names(iris) ) {
 }
 ```
 
-##### Practice
+
+#### Control Statments {.tabset}
+
+##### for loops
+Here is the syntax for a basic for loop in **R**
+
+```{r}
+for ( i in 1:10 ) {
+   cat(i,'\n')
+}
+```
+
+Note that the loop and the *iterator* are evaluated within the global environment.
+
+```{r}
+for (var in names(mtcars)) {
+  cat( sprintf('average %s = %4.3f', var, mean(mtcars[,var])), '\n')
+}
+```
+
+##### while 
+A while statement can be useful when you aren't sure how many iterations are needed.  
+Here is an example that takes a random walk and terminates if the value is
+more than 10 units from 0.
+
+```{r}
+maxIter <- 1e3 # always limit the total iterations allowed
+val = vector(mode='numeric', length=maxIter)
+val[1] = rnorm(1) ## intialize
+k = 1
+while ( abs(val[k]) < 10 & k <= maxIter ) {
+  val[k+1] = val[k] + rnorm(1)
+  k = k + 1
+}
+val = val[1:{k-1}]
+plot(val, type='l')
+```
+
+##### key words
+The following key words are useful within loops:
+  
+  + `break` - break out of the currently excuting loop
+  + `next` - move to the next iteration immediately, without executing 
+  the rest of this iteration (`continue` in other languages such as C++)
+
+Here is an example using `next`:
+```{r}
+for (i in 1:10) {
+  if (i %% 2 == 0) next
+  cat(i,'\n')
+}
+```
+
+Here is an example using `break`:
+
+```{r}
+x = c()
+for (i in 1:1e1) {
+  if (i %% 3 == 0) break
+  x = c(x,i)
+}
+print(x)
+```
+
+##### practice
 The Fibonacci sequence starts 1, 1, 2, ... and continues with each new value formed by adding the two previous values.
 
 1. Write a function 'Fib1' which takes an argument 'n' and returns the $n^{th}$ value of the Fibonacci sequence. Use a for loop in the function.
