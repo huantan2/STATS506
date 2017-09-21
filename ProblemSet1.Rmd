@@ -70,7 +70,7 @@ My thanks to the student who provided the links.
   3. For this question you will analyze data from the 2009 NHANES survey.  You
   may ignore the survey weighting in your analysis and treat this as a simple random sample.
   
-     a. Download the Audiometry data (AUX_D) from [here](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Examination&CycleBeginYear=2005) and the demographics file (DEMO_D) from here.  Determine how to load them into
+     a. Download the Audiometry data (AUX_D) from [here](https://wwwn.cdc.gov/nchs/nhanes/search/datapage.aspx?Component=Examination&CycleBeginYear=2005) and the demographics file (DEMO_D) from [here](https://wwwn.cdc.gov/Nchs/Nhanes/Search/DataPage.aspx?Component=Demographics&CycleBeginYear=2005).  Determine how to load them into
      Stata and then merge on the common identifier `seqn`. Drop all cases without
      audiometry data.
      
