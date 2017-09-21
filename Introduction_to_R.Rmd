@@ -773,6 +773,47 @@ df[1:5,]
 df[,'Var2']
 ```
 
+#### Apply
+
+Loops in **R** can be quite slow compared to other programming language on account of the overhead of many of the conveniences that make it useful for routine data analysis.  Often, explicit loops can be avoided by using an 'apply' function.
+
+Here is an example:
+```{r}
+X = matrix(rep(1:5,each=5),5,5)
+apply(X,1,sum)
+apply(X,2,sum)
+```
+
+For lists use 'lapply()' or 'sapply()'. 
+```{r}
+myList=list(x=1:5,y=-5:-1)
+lapply(myList,sum)
+sapply(myList,sum)
+```
+
+The values in a data.frame are represented internally as a list, so use lapply with data frames.
+
+```{r}
+head(iris)
+sapply(iris,class)
+apply(iris,2,class)
+```
+
+A very powerful construction for data manipulation is the use of apply with an implicit function.
+
+```{r}
+sapply(mtcars,function(x){
+  nVals = length(unique(x))
+  return(nVals)
+})
+```
+
+
+##### Exercises
+
+1. Use apply to get the class of each variable in the 'mtcars' data set.
+2. Use apply to find the row means and column means of the 'attitude' data.
+
 ### Packages 
 
 #### Objectives:
