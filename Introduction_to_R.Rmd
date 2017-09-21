@@ -379,12 +379,12 @@ Consider the follwing examples:
 ```{r}
 ls()
 f1 <- function(){
-  message = "Im defined inside of f!"
+  f1_message = "Im defined inside of f!"  # `message` is a function in base
   ls()
 }
 f1()
 exists('f1')
-exists('message')
+exists('f1_message')
 
 environment()
 f2 <- function(){

@@ -48,6 +48,14 @@ with the parts clearly labeled using comments.
     
     c. Repeat part (b) for a second tutorial. Optionally, you may choose a tutorial from another
     source.
+    
+    Here are copies of the data sets used in the examples:
+    
+      + [kids.dta](./kids.dta) or  https://stats.idre.ucla.edu/stat/stata/modules/kids
+      + [dadmomlong.dta](./dadmomlong.dta)
+      + [dadmomwide.dta](./dadmomwide.dta) or  https://stats.idre.ucla.edu/stat/stata/modules/dadmomw
+
+My thanks to the student who provided the links.
 
   2. Use the RECS data discussed in class to answer this question. 
      Produce nicely formatted tables or graph to justify your answers.
