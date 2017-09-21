@@ -325,7 +325,7 @@ if these parts are used with control flow statements such as loops or conditiona
 zScore1 <- function(x){
   xbar <- mean(x)
   s <- sd(x)
-  z <- ( x - mean(x) ) / s
+  z <- (x - mean(x)) / s
   return(z)  
 }
 ```
@@ -335,7 +335,7 @@ readable. It is good practice to avoid creating intermediate objects to store va
 ```{r,17-z-score2}
 # function to compute z-scores
 zScore2 <- function(x){
-  { x - mean(x) } / sd(x)
+  {x - mean(x)} / sd(x)
 }
 ```
 
@@ -351,7 +351,7 @@ function definition.
 ```{r,19-z-score3}
 # function to compute z-scores
 zScore3 <- function(x, na.rm=T){
-  { x - mean(x, na.rm=na.rm) } / sd(x, na.rm=na.rm)
+  {x - mean(x, na.rm=na.rm)} / sd(x, na.rm=na.rm)
 }
 ```
 
@@ -360,12 +360,107 @@ x <- c(NA,x,NA)
 round(cbind(x,'Z1'=zScore1(x),'Z2'=zScore2(x),'Z3'=zScore3(x)),1)
 ```
 
+##### Scope
+
+Scoping refers to how R looks up the value associated with an object referred to 
+by name.  There are two types of scoping -- lexical and dynamic -- but we will 
+concern ourselves only with lexical scoping here.  There are four keys to
+understanding scoping:
+ 
+  + environments
+  + name masking
+  + variables vs functions
+  + dynamic lookup and lazy evaluation.
+
+An environment can be thought of as context in which a name for an object makes sense.
+Each time a function is called, it generates a new environment for the computation.
+
+Consider the follwing examples:
+```{r}
+ls()
+f1 <- function(){
+  message = "Im defined inside of f!"
+  ls()
+}
+f1()
+exists('f1')
+exists('message')
+
+environment()
+f2 <- function(){
+  environment()
+}
+f2()
+rm(f1,f2)
+```
+
+Name masking refers to where and in what order **R** looks for object names.  
+When we call `f1` above, **R** first looks in the current environment which
+happens to be the global environment. The call to `ls()` however, happens within
+the environment created by the function call and hence returns only the objects
+defined in the local environment. 
+
+When an environment is created, it gets nested within the current environment referred
+to as the "parent environemnt". When an object is referenced we first look in
+the current environment and move recursively up through parent environments until 
+we find a value bound to that name.
+
+Name masking refers to the notion that objects of the same name can exist in different
+environments.  Consider these examples:
+
+```{r}
+y <- x <- 'I came from outside of f!'
+f3 <- function(){
+  x <- 'I came from inside of x!'
+  list(x=x,y=y)
+}
+f3()
+x
+
+mean <- function(x){sum(x)}
+mean(1:10)
+base::mean(1:10)
+rm(mean)
+```
+
+**R** also uses dynamic lookup, meaning values are searched for when a function is called
+and not when it is created. In the example above, `y` was defined in the global
+environment rather than within the function body. This means the value returned by
+`f3` depends on the value of `y` in the global environment. You should generally avoid
+this, but there are occasions where it can be useful.
+
+```{r}
+y <- "I have been reinvented!"
+f3()
+```
+
+Finally, lazy evaluation means **R** only evaluates function arguments if/when they
+are actually used.
+
+```{r}
+f4 <- function(x){
+  #x
+  45
+}
+f4(x=stop("Let's pass an error."))
+```
+Uncomment `x` to see what happens if we evlauate it.
+
 ##### Resources
 Read more about functions [here](http://r4ds.had.co.nz/functions.html) and [here](http://adv-r.had.co.nz/Functions.html#lazy-evaluation).
 
 The second link is to Chapter 6 from the optional text "Advanced R".
 
 You can also read much more about functions in Chapter 7 of "The Art of R Programming."
+
+##### Practice
+
+1. Access and skim the help pages for 'median()', 'mad()', and 'IQR'.
+2. Write a function 'zScoreRobust' that accepts a numeric vector and returns robust z-scores.
+3. Make the function you wrote robust to vectors containing "NA" values
+4. Generate some data from N(4,2) to test your functions.
+5. View the function at this [link](https://raw.githubusercontent.com/jbhender/Stats506/master/tbd.R)
+and answer the questions in the comments.
 
 #### Conditionals
 In programming, we often need to execute a piece of code only if some condition is
@@ -578,6 +673,105 @@ The Fibonacci sequence starts 1, 1, 2, ... and continues with each new value for
 2. Write a function 'Fib2' which does the same thing using a while loop.
 
 3. Use a switch to write a function that has a parameter `loop = c('for', 'while')` for calling either `Fib1` or `Fib2`.
+
+#### Important Classes {.tabset}
+##### Matrices
+Matrices are two-dimensional vectors organized into rows and columns. They always contain values of a single type.
+
+Matrices are stored using 'column-major ordering' meaning that by default they are filled and operated on by column.
+```{r}
+X <- matrix(1:10,nrow=5,ncol=2)
+Y <- matrix(1:10,nrow=5,ncol=2,byrow = TRUE)
+X
+Y
+class(X)
+```
+
+**R** can do matrix multiplication and many other linear algebra computations.
+
+```{r}
+X %*% t(Y)
+3*X
+c(1,2)*Y
+```
+
+Matrices have both dimension and length.
+```{r}
+dim(X)
+length(X)
+as.vector(X)
+c(nrow(X),ncol(X))
+```
+
+```{r}
+colnames(X) <- paste('Col',1:2,sep='')
+rownames(X) <- letters[1:5]
+X["a",]
+X[1:3,'Col2']
+```
+
+##### Arrays
+See 'help(arrays)'.
+
+##### Multiple types {.tabset}
+
+###### Lists
+In **R** a list is a generic container for storing values of multiple types. 
+
+```{r}
+myList <- list(Name='An example list',
+               Matrix=diag(5),
+               n=5
+               )
+myList
+class(myList)
+length(myList)
+names(myList)
+```
+
+You can access a specific element in a list by position or name:
+```{r}
+myList[['Name']]
+myList$Matrix
+```
+Note the use of double brackets ('[['n']]) and compare to the single bracket case below.
+
+```{r}
+class(myList['n'])
+class(myList[['n']])
+```
+
+###### Data Frames
+
+Data frame are perhaps the most common way to represent a data set in **R**. A data frame is like a matrix with observations or units in rows and variables in columns.  It doesn't require the columns to all be of the same type.
+
+```{r}
+df <- data.frame(ID=1:10,
+                 Group=
+                   sample(0:1,10,replace=TRUE),
+                 Var1=rnorm(10),
+                 Var2=seq(0,1,length.out=10),
+                 Var3=factor(
+                   rep(c('a','b'),each=5)
+                   )
+                )
+names(df)
+dim(df)
+length(df)
+nrow(df)
+
+```
+
+We can access the values of a data frame both like a list:
+```{r}
+df$ID
+df[['Var3']]
+```
+or like a matrix
+```{r}
+df[1:5,]
+df[,'Var2']
+```
 
 ### Packages 
 
