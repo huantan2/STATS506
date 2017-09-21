@@ -75,7 +75,8 @@ My thanks to the student who provided the links.
      audiometry data.
      
      b. Read the information under the headings 'Eligible Sample' and 
-    'Protocol and Procedure' at the first link above. For each hearing threshold test,
+    'Protocol and Procedure' in the doc file for the audiometry data
+     at the first link above. For each hearing threshold test,
      compare the old and young sub-populations stratified by left and right ear.
      You may compare each frequency separately and only need to use the first 
      test at each frequency. Based on these data, is hearing loss due to age more
