@@ -8,6 +8,8 @@ output:
     highlight: pygments
     css: styles.css
 ---
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
 
 ## About Stata
 
@@ -54,7 +56,7 @@ Numeric variables come in the following storage types:
 
 Storage Type | Bytes | What
 -------------|-------|-----
-byte | 1 | small integers (up to $2^8- 1=256$)
+byte | 1 | small integers (up to $2^8- 1=255$)
 int | 2 | big integers (up to $2^{16}-1$)
 long | 4 | very big integers
 float | 4 | up to 38 decimal places
@@ -139,7 +141,7 @@ Here are some opinions on style in Stata:
 
   + [Style is the Essential](https://michaelshill.net/2015/07/31/in-stata-coding-style-is-the-essential/)
 
-  + [Suggestions on Stata Programming Style](http://www.stata-journal.com/sjpdf.html?articlenum=pr0018))
+  + [Suggestions on Stata Programming Style](http://www.stata-journal.com/sjpdf.html?articlenum=pr0018)
 
 
 ### Data Management
@@ -159,11 +161,27 @@ The following commands are useful for manipulating data in Stata:
  + `encode`, `decode` - use to switch between string and integer representation for categorical variables
  + `recode` - to re-code into different values, i.e $0 \to 1, 1 \to 0$
 
+#### Data Management Demonstration
+
+In class we demonstrated the above commands using the Resedidential Energy Consumption Survey (RECS)
+from 2009. On the CSC servers, you can obtain a local copy of the data using:
+
+```bash
+wget http://www.eia.gov/consumption/residential/data/2009/csv/recs2009_public.csv
+```
+
+You can get short descriptions of these data here:
+```bash
+wget http://www.eia.gov/consumption/residential/data/2009/csv/public_layout.csv
+```
+
+More detailed descriptions are available as an Excel file [here](http://www.eia.gov/consumption/residential/data/2009/xls/recs2009_public_codebook.xlsx).
+
 The data management demonstration from class can be found at: 
 [RECS_prep_subset1.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_prep_subset1.do).
 
 See [Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/)
-for how to obtain the RECS data.
+for additional examples using the RECS data.
 
 #### Boolean Operators
 
@@ -193,7 +211,11 @@ The key Stata commands in the demonstration are:
   + `#`, `##` - for specifying interaction terms
 
 The script from the in-class demonstration can be found at:
-[RECS_Consump_Analysis.do](https://github.com/jbhender/Stats506/blob/master/Stata/RECS/RECS_Consump_Analysis.do)
+[RECS_Consump_Analysis.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_Consump_Analysis.do)
+
+The script is likely more useful and readable, but
+a log from the live demonstration is also available here: [RECS_Consump_Analysis_14Sep2017.txt](./RECS_Consump_Analysis_14Sep2017.txt) 
+
 
 Some important data analysis principals:
 
@@ -217,12 +239,15 @@ A local macro can be defined by:
 local life_questions 42
 ```
 
-The value of a macro is retrieved by encapsulation between a back tick "`" and 
-an apostrophe "'":
+The value of a macro is retrieved by encapsulation between a back tick ` and 
+an apostrophe ':
 
 ```stata
 display `life_questions'
 ```
+
+The live demonstration of macros from class is available here [macros_14Sep2017.txt](./macros_14Sep2017.txt)
+
 Macros are frequently used in loops:
 
 ```stata
@@ -251,13 +276,28 @@ or exams in this course.
 
 ## Resources
 
+Links to the in-class demonstrations:
+
+  + Data management: [RECS_prep_subset1.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_prep_subset1.do)
+  
+  + Macros: [macros_14Sep2017.txt](./macros_14Sep2017.txt)
+  
+  + Regression: [RECS_Consump_Analysis.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_Consump_Analysis.do) 
+  [RECS_Consump_Analysis_14Sep2017.txt](./RECS_Consump_Analysis_14Sep2017.txt) 
+
+  
+  + Merging data: [RECS_merge.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_merge.do).
+
+  + Post-estimation summaries using margins: [RECS_ES.do](https://raw.githubusercontent.com/jbhender/Stats506/master/Stata/RECS/RECS_ES.do)
+
 You may find the following resources useful in learning to use Stata:
 
   + [Stata documenation](https://www.stata.com/features/documentation/)
-
 
 These notes are based in large part on:
 
   + [Professor Shedden's Stata Intro](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/stata_intro/)
 
   + [Dr. Errickson's CSCAR Workshop Notes](https://github.com/josherrickson/workshop-stata-intro-book/tree/master/stata_markdown)
+  
+[Course Homepage](https://jbhender.github.io/Stats506/)

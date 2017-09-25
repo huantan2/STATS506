@@ -23,5 +23,12 @@ output:
   <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
   
   <a href="./Short_Introduction_to_Stata.html">A Short Introducton to Stata</a>
+
+  <a href="./ProblemSet1.html">Problem set 1</a> [<a href="./StyleRubric.html">Style rubric</a>]
+
+  <a href="./Language_Comparisons.html">Common Commands (in R and Stata)</a>
+
+  <a href="./Introduction_to_R.html">An Introducton to R</a>
+
   </div>
 </div>

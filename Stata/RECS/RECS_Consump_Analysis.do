@@ -60,40 +60,38 @@ generate year_since1920 = yearmade - 1920
 label variable year_since1920 "Year Constructed"
 
 // multiple regression
-regress kwh year_since1920 totsqf
+regress kwh year_since1920 totsqft
 display %3.1f 100*e(r2_a)
 
-regress kwh year_since1920 c.totsqf i.regionc // use prefix to specify
+regress kwh year_since1920 c.totsqft i.regionc // use prefix to specify
 	    	          		// continuous(c.) / categorical(i.)
 
 // log transform
 generate lkwh = log(kwh)
 label variable lkwh "Log KWH"
 
-regress lkwh year_since1920 totsqf i.regionc
+regress lkwh year_since1920 totsqft i.regionc
 
 // Ask for exponentiated coefficients
-regress lkwh year_since1920 totsqf i.regionc, eform("%Change") cformat("%5.3f")
+regress lkwh year_since1920 totsqft i.regionc, eform("%Change")
 
 // interactions
-regress lkwh c.totsqf##c.year_since1920 i.regionc, eform("%Change")
+regress lkwh c.totsqft##c.year_since1920 i.regionc, eform("%Change")
 
-regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
+regress lkwh c.totsqft c.year_since1920 i.regionc /// split across lines
   c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
 
-regress lkwh c.totsqf c.year_since1920##i.regionc, eform("%Change") cformat("%5.3f")
-
- regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
+ regress lkwh c.totsqft c.year_since1920 i.regionc /// split across lines
   c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
 
 /* Good practice to center variables before interacting them */
 
 // Check correlations with interaction term 
-generate year_sqft = yearmade*totsqf
-correlate yearmade totsqf year_sqft
+generate year_sqft = yearmade*totsqft
+correlate yearmade totsqft year_sqft
 
-generate year1920_sqft = year_since1920*totsqft
-correlate year_since1920 totsqf year1920_sqft
+generate year1920_sqft = year_since1920*totsqftt
+correlate year_since1920 totsqft year1920_sqft
 
 // Center year and scale by 10
 quietly summarize yearmade
@@ -101,15 +99,15 @@ generate c_year = (yearmade - r(mean))/10  // Make unit decades
 label variable c_year "10 Years (centered)"
 
 // Center sq footage and scale by 100
-quietly summarize totsqf
-generate c_totsqf = (totsqf - r(mean))/100 // Per 100 sq ft
-label variable c_totsqf "Total Sq Ft (100s, centered)"
+quietly summarize totsqft
+generate c_totsqft = (totsqft - r(mean))/100 // Per 100 sq ft
+label variable c_totsqft "Total Sq Ft (100s, centered)"
 
-generate cyear_csqft = c_totsqf*c_year
-correlate c_year c_totsqf cyear_csqft
+generate cyear_csqft = c_totsqft*c_year
+correlate c_year c_totsqft cyear_csqft
 
 // regression with centered variables
-regress lkwh c.c_totsqf##c.c_year i.regionc, eform("%Change")
+regress lkwh c.c_totsqft##c.c_year i.regionc, eform("%Change")
 
 *------------------------------------------------------------------------*
 
