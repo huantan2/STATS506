@@ -73,13 +73,15 @@ label variable lkwh "Log KWH"
 regress lkwh year_since1920 totsqf i.regionc
 
 // Ask for exponentiated coefficients
-regress lkwh year_since1920 totsqf i.regionc, eform("%Change")
+regress lkwh year_since1920 totsqf i.regionc, eform("%Change") cformat("%5.3f")
 
 // interactions
 regress lkwh c.totsqf##c.year_since1920 i.regionc, eform("%Change")
 
 regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
   c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
+
+regress lkwh c.totsqf c.year_since1920##i.regionc, eform("%Change") cformat("%5.3f")
 
  regress lkwh c.totsqf c.year_since1920 i.regionc /// split across lines
   c.year_since1920#i.regionc, eform("%Change") cformat("%5.3f")
