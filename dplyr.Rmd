@@ -204,8 +204,6 @@ We might also want to find all states with at least 25% of people living in apar
 recs_type_state %>% filter( {ApartmentFew+ApartmentMany} >= 25)
 ```
 
-
-
 ###  Caution
 
 If you look at the bottom of the home-types by state table, you'll notice Illinois
@@ -218,7 +216,9 @@ recs_type_state_sum %>% filter(State=='IL')
 ```
 
 In our previous call to mutate, we didn't guard against this.  We can do something
-safer to get more robust results. 
+safer to get more robust results. One way to do this would be to use the `rowwise`
+function which ensures vectorized R functions such as `sum` are interpreted to act row by row.
+This illustrated under the "pipes" tab.
 
 
 ## Pipes `%>%`
@@ -255,3 +255,36 @@ home_type_prop = recs_tib %>%
 options(list('digits'=2,dplyr.width=Inf))
 home_type_prop
 ```
+
+Here is the same example using `rowwise` to avoid `NA` from missing values in 
+our sum (assuming that is the behavior we want.)
+
+```{r }
+home_type_prop_rowwise = recs_tib %>% 
+  transmute(State=REPORTABLE_DOMAIN, Type=TYPEHUQ, Weight = NWEIGHT) %>%  
+  mutate(State=decode_all_states(State), Type=decode_all_house_types(Type)) %>%
+  group_by(State, Type) %>%
+  summarize(Homes=sum(Weight)) %>%
+  tidyr::spread(Type,Homes) %>%
+  rowwise() %>%  # to guard against NA when summing "Total"
+  mutate(Total = sum(ApartmentFew, ApartmentMany, MobileHome,
+                 SingleFamilyAttached, SingleFamilyDetached, na.rm=TRUE),
+         ApartmentFew         = 100*ApartmentFew/Total,
+         ApartmentMany        = 100*ApartmentMany/Total,
+         MobileHome           = 100*MobileHome/Total,
+         SingleFamilyAttached = 100*SingleFamilyAttached/Total,
+         SingleFamilyDetached = 100*SingleFamilyDetached/Total
+        ) %>%
+  select(-Total) %>%
+  arrange(desc(SingleFamilyAttached))
+
+## In an R script, options() sets global options.  
+## These seem to be wiped between code chunks in R-Markdown.
+getOption('digits')
+options(list('digits'=2,dplyr.width=Inf))
+getOption('digits')
+
+home_type_prop_rowwise %>% filter(State=="IL")
+```
+
+
