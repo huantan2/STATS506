@@ -1,5 +1,5 @@
 ---
-title: "Split, Apply, Combine"
+title: "Home Types Case Study"
 author: "Statistics 506, Fall 2017"
 date: ""
 output: html_document
@@ -10,9 +10,18 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = TRUE)
 ```
 
+## Case Study
+
+In this document we will use the RECS data as a case study for introducing
+"split, apply, combine" and several R packages from the [tidyverse](https://www.tidyverse.org/).
+
+We will take a brief look at `readr` and then illustrate some of the functionality 
+of `dplyr` and `tidyr`. You should read the following introduction to [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) and work through the examples there on your own. 
+
+# {.tabset}
 ## readr
 
-The readr package is one of several alternatives to `read.csv()` and `read.table` in the base R package `utils`. Let's do a quick comaprison of the two
+The readr package is one of several alternatives to `read.csv()` and `read.table` in the base R package `utils`. Let's do a quick comparison of the two
 using `system.time()`.
 
 ```{r, echo=TRUE,warning=FALSE}
@@ -41,43 +50,208 @@ system.time({
 class(recs_tib)
 ```
 
-In the examle above, note the use of braces `{}` to encapuslate an 
+In the example above, note the use of braces `{}` to encapsulate an 
 expression with assignment within the call to `system.time()`. 
 
-We can get additional improvement if we prespecify the column types.  
 
-```{r,echo=TRUE,warning=FALSE}
-#install.packages('dplyr')
-library(dplyr)
-## Read col types in from file
-pub_layout = read_csv('./public_layout.csv')
-unique(pub_layout$'Variable Type')
-
-# rename and convert to lower to please R and readr
-pub_layout = pub_layout %>% rename(type='Variable Type') %>%
-  mutate(type = sapply(type, function(x){
-                       switch(x, Character='c', Numeric='n')
-                      }))
-unique(pub_layout$type)
-
-# Time it again
-system.time({
-  suppressMessages({
-  recs_tib = read_delim('./recs2009_public.csv', delim=',',
-                        col_names=TRUE, 
-                        col_types=pub_layout$type)
-  })
-})
-```
-
-## Split, Apply, Combine
+## Split, Apply, Combine and dplyr
 
 One of the most frequently used patterns in data analysis and management is performing some operation repeatedly over subsets of
-data.  This is often called "split-apply-combine" and is an approach emphasized by the R package 
-[dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html). You should read the introduction to [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) and work through the examples there.
+data. This is often called "split-apply-combine" and is an approach emphasized by the R package 
+[dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html). You should read the introduction to [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) and work through the examples there. 
+
+### Case Study: Home types by state
+
+We will use the RECS data imported above to demonstrate some of the functionality of 
+dplyr.  Let's set out to answer the question, which state has the highest proportion
+of single-family attached homes?
+
+Let's begin by creating a clean data frame with the necessary variables. We'll
+need to keep the two variables of interest and the sample weight.
+
+```{r, subset}
+## Subset recs to home-type, state, and sample weight.
+recs_homes = transmute(recs_tib, State=REPORTABLE_DOMAIN, Type=TYPEHUQ, 
+                       Weight = NWEIGHT)
+recs_homes
+```
+
+Next, let's clean up the values to something more easily interpreted. We will write
+functions for the mappings so we can reuse them later. The functions will begin
+with the `decode_` prefix so we can remember them as a group.
+
+```{r decode_states}
+# Functions to decode states or reportable_domains from RECS.
+
+# decode_state returns a single value
+decode_state = function(x){
+  if(!is.numeric(x)) stop('decode_states expects numeric input indexed from 1!')
+  
+  switch(x,
+      "CT, ME, NH, RI, VT", "MA", "NY", "NJ", "PA", "IL", "IN, OH", "MI", "WI",
+      "IA, MN, ND, SD", "KS, NE", "MO", "VA", "DE, DC, MD, WV", "GA",
+      "NC, SC" , "FL", "AL, KY, MS", "TN", "AR, LA, OK",
+      "TX", "CO", "ID, MT, UT, WY", "AZ", "NV, NM",
+      "CA", "AK, HI, OR, WA"
+    )
+}
+
+# this is a wrapper to an apply call
+decode_all_states = function(x){
+  sapply(x, decode_state)
+}
+```
+
+
+```{r decode_type}
+# Functions to decode housing type
+decode_house_type = function(x){
+  if(!is.numeric(x)) stop('decode_house_type expects numeric input indexed from 1!')
+  
+  switch(x,
+         'MobileHome',
+         'SingleFamilyDetached',
+         'SingleFamilyAttached',
+         'ApartmentFew',
+         'ApartmentMany'
+         )
+}
+
+decode_all_house_types = function(x){
+  sapply(x,decode_house_type)
+}
+```
+
+Next we `mutate` our data frame, replacing our numeric codes with decoded values.
+```{r mutate}
+recs_homes = mutate(recs_homes, 
+                    State=decode_all_states(State),
+                    Type=decode_all_house_types(Type))
+recs_homes
+```
+
+#### group_by and summarize
+Recall that we are interested in computing the proportion of each housing type
+by state. We can do this using the split, apply, combine, paradigm -- in dplyr
+and other languages this is accomplished using a group operation with an aggregation
+function.  In dplyr we use `group_by` to group and `summarize` to aggregate. 
+
+First the grouping,
+```{r group}
+recs_homes_group_states = group_by(recs_homes, State, Type)
+recs_homes_group_states
+```
+
+and now the aggregation 
+```{r summarize}
+recs_type_state_sum = summarize(recs_homes_group_states, Homes=sum(Weight))
+recs_type_state_sum
+```
+
+Pay close attention to the change in grouping.  When `summarize` is called we
+lose the most nested group.
+
+#### spread, select, arrange
+
+To proceed, let's reshape the data to have one row per state.  We can do this
+using the `tidyr::spread` function.
+
+```{r}
+# Reshape to wide format for easy computation of proportions
+recs_type_state = tidyr::spread(recs_type_state_sum,Type,Homes)
+
+# Compute proportions
+recs_type_state = mutate(recs_type_state,
+                         Total = ApartmentFew + ApartmentMany + MobileHome +
+                           SingleFamilyAttached + SingleFamilyDetached,
+                         
+                         ApartmentFew         = 100*ApartmentFew/Total,
+                         ApartmentMany        = 100*ApartmentMany/Total,
+                         MobileHome           = 100*MobileHome/Total,
+                         SingleFamilyAttached = 100*SingleFamilyAttached/Total,
+                         SingleFamilyDetached = 100*SingleFamilyDetached/Total
+                         )
+
+# Drop total
+recs_type_state = select(recs_type_state,-Total)
+
+# Sort by Single Family Attached
+recs_type_state = arrange(recs_type_state, SingleFamilyAttached)
+
+# Use desc() to sort in descending order
+recs_type_state = arrange(recs_type_state, desc(SingleFamilyAttached))
+recs_type_state
+```
+
+A nicely formatted table would be rounded to a whole or tenth of a percent. In
+general, it is better to round only for display and not in the data itself to prevent
+rounding error from accumulating.
+
+```{r}
+knitr::kable(recs_type_state,digits=1,caption='Proprtion of home types by State(s).')
+```
+
+#### Filter 
+Next we take a quick look at just Michigan to demonstrate the use of `filter`.
+
+```{r}
+recs_type_state %>% filter(State=='MI')
+```
+
+We might also want to find all states with at least 25% of people living in apartments,
+
+```{r}
+recs_type_state %>% filter( {ApartmentFew+ApartmentMany} >= 25)
+```
 
 
 
+###  Caution
+
+If you look at the bottom of the home-types by state table, you'll notice Illinois
+has `NA` rather than values.  What happened? 
+
+Looking at the state/type summaries we will notice that there is no mobile home
+type for Illinois.  
+```{r}
+recs_type_state_sum %>% filter(State=='IL')
+```
+
+In our previous call to mutate, we didn't guard against this.  We can do something
+safer to get more robust results. 
 
 
+## Pipes `%>%`
 
+At then end of the case study, you may have notice an odd symbol `%>%`. This "pipe"
+operator can be used to pass a data frame implicitly to dplyr functions.  The utility
+of this lies in allowing us to string dplyr functions together in such a way that
+they read in the same order as performed rather from the inside out.  This also
+prevents us from needing to keep track of so many intermediate objects.  Together
+these two properites make our code cleaner -- making it easier to understand and 
+debug.
+
+Here is the entire example as a single piped chain,
+
+```{r}
+home_type_prop = recs_tib %>% 
+  transmute(State=REPORTABLE_DOMAIN, Type=TYPEHUQ, Weight = NWEIGHT) %>%  
+  mutate(State=decode_all_states(State), Type=decode_all_house_types(Type)) %>%
+  group_by(State, Type) %>%
+  summarize(Homes=sum(Weight)) %>%
+  tidyr::spread(Type,Homes) %>%
+  mutate(Total = ApartmentFew + ApartmentMany + MobileHome + 
+                 SingleFamilyAttached + SingleFamilyDetached,
+         ApartmentFew         = 100*ApartmentFew/Total,
+         ApartmentMany        = 100*ApartmentMany/Total,
+         MobileHome           = 100*MobileHome/Total,
+         SingleFamilyAttached = 100*SingleFamilyAttached/Total,
+         SingleFamilyDetached = 100*SingleFamilyDetached/Total
+        ) %>%
+  select(-Total) %>%
+  arrange(desc(SingleFamilyAttached))
+
+# Change options for display
+options(list('digits'=2,dplyr.width=Inf))
+home_type_prop
+```
