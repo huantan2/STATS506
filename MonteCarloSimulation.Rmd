@@ -1,0 +1,103 @@
+---
+title: "Monte Carlo Simulation in R"
+author: "Statistics 506, Fall 2017"
+date: "9/26/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Monte Carlo Estimation
+
+In statistics and data science we are often interested in computing expectations 
+of random outcomes of various types.  When analytical expectations are unavailable, 
+it can be useful to obtain Monte Carlo approximations by simulating a random process
+and then directly averaging the values of interest. 
+
+This works because sample averages are (often) good estimates of the corresponding 
+expectation:
+
+$$
+{\bar{\theta}}_{n} := \sum_{i=1}^n X_i / n  \to \theta := E[X].
+$$
+$$
+\bar{\theta}_n \to \theta 
+$$
+In fact, assuming our data are independent and identically distribute (iid)
+from a distribution with finite variance,
+we can characterize the rate of convergence of a sample average to its population counterpart
+using the central limit theorem (CLT),
+
+$$
+\sqrt{n}(\bar{\theta}_n - \theta') \to_{d} N(0,\sigma^2)
+$$
+where $\sigma^2 = E[X^2] - E[X]^2$ is the variance of the underlying distribution.
+
+### Distribution functions
+There are functions in R for simulating from many common distributions. 
+Here are a few:
+
+ + `rnorm()` - Normal
+ + `runif()` - Uniform
+ + `rt()`    - the t-distribution
+ + `rexp()`  - Expoential
+ + `rpois()` - Poisson
+
+Another useful function in R is `sample()` for sampling from a finite set of values,
+i.e. the discrete uniform distribution or any finite probability mass function.
+
+### Basic Example
+As a quick example, let's use these functions to compute percentiles for t-distributions
+with various degress of freedom. Let $\theta_q$ be the parameter of interest,
+
+$$
+\theta_q := F(q) = \int_{-\infty}^{q} f(x) dx =  \int_{-\infty}^{\infty} 1[x \le q]f(x) dx 
+$$
+where $F(\cdot)$ is the CDF and $f(\cdot)$ the PDF of a given t-distribution. 
+```{r}
+## simulaton parameters
+n  = 1e4
+df = 3
+percentile = c(-1.96,1.96)
+
+## simulate data
+dat = rt(n,df)
+hist(dat,prob=TRUE,las=1,col='darkgreen')
+
+## Function(s) of interest
+theta_bar = sapply(percentile,function(x) mean(dat<=x))
+```
+
+
+In this case, our Monte Carlo estimate of $(\theta_{-1.96}, \theta_{1.96})$ is 
+$\bar{\theta}=$ (`r theta_bar[1]`, `r theta_bar[2]`). The actual values are 
+$(\theta_{-1.96}, \theta_{1.96})$ = (`r pt(percentile[1],df)`, `r pt(percentile[2],df)`).
+
+## Case Study: The Bonferonni-Holm Method
+
+### Background
+As background, recall that we often discuss statistical tests in terms of power
+and the type I error rate or significance level.  Statistical tests often take 
+the form,
+  
+  + $H_0: \theta = \theta'$
+  + $H_1: \theta \neq \theta'$
+
+where $\theta$ is a parameter from a probability distribution $F$ and $\theta'$ some
+hypothetical value of interest.  
+
+Statistical tests are ususally formulated in terms of  test statistic $\phi(x)$ 
+which is a function of some observed data $x = (x_1, x_2, ..)$ . Sometimes these
+are associated with a "p-value", the probability of observing a test statistic 
+$\phi(X)$ at least as extreme the one observed under the assumption that $X \sim F(\theta')$.
+
+To be concrete, consider testing whether 
+
+Recall that the significance level $\alpha$ is the probability of rejecting the null
+hypothesis when this hypothesis is in fact true.  
+
+You may be familiar with the problem of multiple comparisons,
+[]
+
