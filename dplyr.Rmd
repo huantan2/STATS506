@@ -1,0 +1,83 @@
+---
+title: "Split, Apply, Combine"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## readr
+
+The readr package is one of several alternatives to `read.csv()` and `read.table` in the base R package `utils`. Let's do a quick comaprison of the two
+using `system.time()`.
+
+```{r, echo=TRUE,warning=FALSE}
+## load (install) readr
+#install.packages(readr)
+library(readr)
+
+# setwd('~/Stats506/')
+
+## Base R read.csv is a wrapper around read.table
+system.time({
+  recs_df = read.table('./recs2009_public.csv',
+                       stringsAsFactors = FALSE, header=TRUE, 
+                       sep=',')
+}
+)
+class(recs_df)
+
+## readr 
+system.time({
+  suppressMessages({
+  recs_tib = read_delim('./recs2009_public.csv', delim=',',
+                        col_names=TRUE)
+  })
+})
+class(recs_tib)
+```
+
+In the examle above, note the use of braces `{}` to encapuslate an 
+expression with assignment within the call to `system.time()`. 
+
+We can get additional improvement if we prespecify the column types.  
+
+```{r,echo=TRUE,warning=FALSE}
+#install.packages('dplyr')
+library(dplyr)
+## Read col types in from file
+pub_layout = read_csv('./public_layout.csv')
+unique(pub_layout$'Variable Type')
+
+# rename and convert to lower to please R and readr
+pub_layout = pub_layout %>% rename(type='Variable Type') %>%
+  mutate(type = sapply(type, function(x){
+                       switch(x, Character='c', Numeric='n')
+                      }))
+unique(pub_layout$type)
+
+# Time it again
+system.time({
+  suppressMessages({
+  recs_tib = read_delim('./recs2009_public.csv', delim=',',
+                        col_names=TRUE, 
+                        col_types=pub_layout$type)
+  })
+})
+```
+
+## Split, Apply, Combine
+
+One of the most frequently used patterns in data analysis and management is performing some operation repeatedly over subsets of
+data.  This is often called "split-apply-combine" and is an approach emphasized by the R package 
+[dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html). You should read the introduction to [dplyr](https://cran.r-project.org/web/packages/dplyr/vignettes/dplyr.html) and work through the examples there.
+
+
+
+
+
+
