@@ -30,5 +30,6 @@ output:
 
   <a href="./Introduction_to_R.html">An Introducton to R</a>
 
+  <a href="./dplyr.html">RECS Case Study: Home Types</a>
   </div>
 </div>
