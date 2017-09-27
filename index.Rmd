@@ -31,5 +31,7 @@ output:
   <a href="./Introduction_to_R.html">An Introducton to R</a>
 
   <a href="./dplyr.html">RECS Case Study: Home Types</a>
+  
+  <a href="./MonteCarloSimulation.html">Monte Carlo Simulation and Vectorization in R</a>
   </div>
 </div>
