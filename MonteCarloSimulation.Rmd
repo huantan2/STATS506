@@ -1,7 +1,7 @@
 ---
 title: "Monte Carlo Simulation in R"
 author: "Statistics 506, Fall 2017"
-date: "9/26/2017"
+date: ""
 output: html_document
 ---
 
@@ -25,7 +25,7 @@ $$
 $$
 \bar{\theta}_n \to \theta 
 $$
-In fact, assuming our data are independent and identically distribute (iid)
+In fact, assuming our data are independent and identically distributed (iid)
 from a distribution with finite variance,
 we can characterize the rate of convergence of a sample average to its population counterpart
 using the central limit theorem (CLT),
@@ -34,6 +34,8 @@ $$
 \sqrt{n}(\bar{\theta}_n - \theta') \to_{d} N(0,\sigma^2)
 $$
 where $\sigma^2 = E[X^2] - E[X]^2$ is the variance of the underlying distribution.
+This can be useful for constructing approximate confidence intervals for the
+Monte Carlo error. 
 
 ### Distribution functions
 There are functions in R for simulating from many common distributions. 
@@ -42,15 +44,47 @@ Here are a few:
  + `rnorm()` - Normal
  + `runif()` - Uniform
  + `rt()`    - the t-distribution
- + `rexp()`  - Expoential
+ + `rexp()`  - Exponential
  + `rpois()` - Poisson
 
 Another useful function in R is `sample()` for sampling from a finite set of values,
 i.e. the discrete uniform distribution or any finite probability mass function.
 
-### Basic Example
+### Random Seeds
+
+When we call one of the `r*` functions to generate random draws from a distribution,
+R relies on a pseudo-random number generate to generate from $U(0,1)$ and
+produce the results. Thus the outcome of these calls depends on the current 
+state of the generator.  It is sometimes desirable to reproduce exactly the 
+same pseudo-random sequence. You can do this by fixing the random seed using 
+`set.seed()` which takes an integer argument.  The function `RNGkind()` can be
+used to display or set the random number generator.
+
+```{r}
+RNGkind()
+```
+
+
+```{r}
+a = runif(1)
+b = runif(1)
+a == b
+```
+
+```{r}
+set.seed(42)
+a = runif(1)
+
+set.seed(42)
+b = runif(1)
+
+a == b
+```
+
+
+### Basic Example 1
 As a quick example, let's use these functions to compute percentiles for t-distributions
-with various degress of freedom. Let $\theta_q$ be the parameter of interest,
+with various degrees of freedom. Let $\theta_q$ be the parameter of interest,
 
 $$
 \theta_q := F(q) = \int_{-\infty}^{q} f(x) dx =  \int_{-\infty}^{\infty} 1[x \le q]f(x) dx 
@@ -70,34 +104,429 @@ hist(dat,prob=TRUE,las=1,col='darkgreen')
 theta_bar = sapply(percentile,function(x) mean(dat<=x))
 ```
 
-
 In this case, our Monte Carlo estimate of $(\theta_{-1.96}, \theta_{1.96})$ is 
 $\bar{\theta}=$ (`r theta_bar[1]`, `r theta_bar[2]`). The actual values are 
 $(\theta_{-1.96}, \theta_{1.96})$ = (`r pt(percentile[1],df)`, `r pt(percentile[2],df)`).
 
-## Case Study: The Bonferonni-Holm Method
+### Basic Example 2
 
-### Background
-As background, recall that we often discuss statistical tests in terms of power
-and the type I error rate or significance level.  Statistical tests often take 
-the form,
+Suppose we are interested in computing the following integral where $\phi$ is
+the standard normal density function:
+
+$$
+ \int_{-\infty}^\infty [\sin(x)-\cos(x)]^2\phi(x) dx.
+$$
+We can recast this as the expectation below,
+
+$$
+E[h(X)], \quad h(x) = [\sin(x)-\cos(x)]^2, \quad X \sim N(0,1).
+$$
+The following R code provides a Monte Carlo estimate,
+
+```{r}
+n=1e4      # number of Monte Carlo samples
+x=rnorm(n) # Monte Carlo sample
+mean({sin(x) - cos(x)}^2) # estimate
+```
+
+Compare this to an estimate using numerical integration,
+
+```{r}
+integrand = function(x){
+  {sin(x)-cos(x)}^2*dnorm(x)
+}
+integrate(integrand,-Inf,Inf)
+```
+
+These values are fairly close to the analytic solution based on the identity
+$[\sin(x)-\cos(x)]^2 = 1 - \sin(2x)$ and the symmetry about zero of both 
+$\sin(\cdot)$ and $\phi(\cdot)$.  Suppose $X \sim N(0,1)$, then
+
+$$
+\begin{align}
+E[{\sin(X)-\cos(x)}^2]  
+&=  E[1-\sin(2X)] \\
+&=1 - E[\sin(2X)] \\
+& = 1 - 0 \\
+& = 1
+\end{align}
+$$
+The code below will produce a plot that illustrates why $E[\sin(a*X)] = 0$ for $X \sim N(0,1)$
+```{r, fig.cap=cap}
+cap="**Illustrating why E[sin(X)] = 0 for X ~ N(0,1).**"
+curve(sin, -2*pi, 2*pi, n=1e3+1, lwd=2, las=1, xaxt='n')
+curve(dnorm, -2*pi, 2*pi, n=1e3+1, lwd=2, col='red', add=TRUE)
+curve(dnorm(x)*sin(x), -2*pi, 2*pi, n=1e3+1, 
+      lwd=2, col='blue', add=TRUE)
+abline(h=0, v=c(-pi,0,pi), lty='dashed', col='grey')
+
+legend('topright', col=c('black', 'red', 'blue'), lwd=2, bty='n', cex=1.2,
+       legend=c('sin(x)', expression(phi*'(x)'), expression(phi*'(x)sin(x)'))
+      )
+
+axis(1, at=pi*seq(-2,2,2), labels=c(expression("-2"*pi), 0, expression("2"*pi)))
+axis(1, at=pi*seq(-2,2,.5), labels=FALSE)
+
+
+```
+
+## Vectorization
+
+Vectorization is a programming technique used to avoid explicit loops in order to improve the
+performance and, sometimes, readability of code.  Vectorization can be particularly useful 
+in Monte Carlo studies where we might otherwise be inclined to use explicit loops. 
+
+**Notice**: the examples in this section are taken directly from Professor Shedden's 2016 course notes
+which you can find [here](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/r_vectorization/).
+
+### Simulation Study for Nominal Confidence Intervals
+
+As an example, we will investigate the coverage probability of nominal 95%
+confidence intervals when the data does not come from a Normal (Gaussian) distribution.  
+
+In the first example, we will assume the data come from an exponential distribution
+with mean one. The strategy here is to generate many (`mcrep`) data sets of size `n`.
+For each data vector, we then calculate a nominal 95% confidence interval for the mean
+and check whether this interval contains the true value one.  
+
+```{r, vectorization1}
+mcrep = 10000                # Simulation replications
+n = 30                       # Sample size we are studying
+xmat = rexp(n * mcrep)       # Simulate standard exponential data
+dim(xmat) = c(mcrep, n)      # Each row is a dataset
+mn = apply(xmat, 1, mean)    # Sample mean of each row
+std = apply(xmat, 1, sd)     # Sample SD of each row
+se = std / sqrt(n)           # Standard errors of the mean
+m = qnorm(1-{1-.95}/2)       # Multiplier for 95% confidence (~1.96)
+lcb = mn - m*se              # lower confidence bounds
+ucb = mn + m*se              # upper confidence bounds
+target = 1                   # value we are estimating
+cvrg_prob = mean((lcb < target) & (ucb > target)) # coverage probability
+print(cvrg_prob)
+```
+
+Since coverage is binary with a fixed probability p, the number of intervals that
+cover one ("successes") in our study is Binomial(`mcrep`,p). We can use this fact
+to estimate the Monte Carlo error which represents the uncertainty in our estimate 
+from the chosen number of replications. 
+
+```{r, Bionmial Error}
+mc_se = sqrt(cvrg_prob*{1-cvrg_prob} / mcrep)
+cvrg_prob_str = sprintf("%4.2f (%5.3f, %5.3f)", 
+                        cvrg_prob, cvrg_prob - m*mc_se, cvrg_prob + m*mc_se)
+```
+
+In this case the estimated coverage is `r cvrg_prob_str`.  
+
+### Broadcasting
+
+We have previously discussed the need to be careful about R recycling values
+when performing arithmetic on arrays with differing dimensions. The formal name
+for this is *broadcasting* and it can be quite useful for vectorization. 
+
+Generally, when you perform a simple arithmetic operation "*" on arrays with
+the same dimensions the operation is applied point-wise so that 
+`(A*B)[i,j] = A[i,j]*B[i,j]`.  However, if the objects `A` and `B` have different
+dimensions, but flattened lengths with one a multiple of the other the values can
+be *broadcast* like this:
+
+```{r}
+xmat = c(1, 2, 3, 4, 5, 6)
+dim(xmat) = c(3, 2)
+xmat
+```
+ 
+```{r}
+xmat - c(1, 2, 3)
+```
+
+Compare this to:
+```{r}
+ymat = c(1, 2, 3, 4, 5, 6) - c(1, 2, 3)
+dim(ymat) = c(3, 2)
+ymat
+```
+
+In this case, if `X` has dimensions `m` and `n` and `v` length `k`
+we see that `(X-v)[i,j] = X[i,j] - v[{(i-1)*m+j mod k} + 1]`. 
+
+This is useful for centering each row of a matrix,
+```{r}
+xmat_c = xmat - rowMeans(xmat)
+```
+or computing row-wise variances,
+```{r}
+row_var1 = rowSums({xmat - rowMeans(xmat)}^2) / {dim(xmat)[2] - 1}
+```
+
+We can compare this to direct computation using an implicit loop via
+an apply function:
+```{r}
+row_var2 = apply(xmat, 1, var)
+all.equal(row_var1, row_var2)
+```
+
+Let's compare the timing of these two approaches:
+
+```{r}
+m = 100000
+n = 30
+xmat = rnorm(m*n)
+dim(xmat) = c(m, n)
+
+tm1 = proc.time()
+rowvar1 = apply(xmat, 1, var)
+tm1 = proc.time() - tm1
+
+tm2 = proc.time()
+rowvar2 = rowMeans((xmat - rowMeans(xmat))^2) * dim(xmat)[2] / (dim(xmat)[2] - 1)
+tm2 = proc.time() - tm2
+
+cat("Apply:", tm1[3], "s, Vectorized:", tm2[3], "s, Ratio:",
+    round(tm1[3]/tm2[3],1),'.\n')
+```
+
+### Correlation Coefficients
+
+In the next example, we consider the problem of computing the correlation coefficient
+between many vectors $x$ and a single outcome $y$.  This can be useful when screening
+a large set of potential predictors for a relationship with an outcome of interest $y$.
+
+First, we generate data that has `n` observations, `m` predictors, and expected
+correlation `r` between each predictor and $y$. 
+```{r}
+n = 30
+m = 10000
+r = 0.4
+yvec = rnorm(n)
+xmat = outer(array(1, m), yvec)
+xmat = 0.4*xmat + sqrt(1 - 0.4^2)*rnorm(n * m)
+```
+
+Now, we can compute the correlations between each row of `xmat` and `y` and compare
+approaches. 
+
+```{r}
+# First approach, calculate as a loop
+tm1 = proc.time()
+r1 = NULL
+for (i in 1:m) {
+    r1[i] = cor(xmat[i, ], yvec)
+}
+tm1 = proc.time() - tm1
+
+# Second approach, functional style with apply
+tm2 = proc.time()
+r2 = apply(xmat, 1, function(v) cor(v, yvec))
+tm2 = proc.time() - tm2
+
+# Third approach, use linear algebra
+tm3 = proc.time()
+rmn = rowMeans(xmat)
+xmat_c = xmat - outer(rmn, array(1, n))
+rsd = apply(xmat, 1, sd)
+xmat_s = xmat_c / outer(rsd, array(1, n))
+yvec_s = {yvec - mean(yvec)} / sd(yvec)
+r3 = xmat_s %*% yvec_s / {n - 1}
+r3 = as.vector(r3)
+tm3 = proc.time() - tm3
+
+# Fourth approach, use linear algebra with broadcasting
+tm4 = proc.time()
+rmn = rowMeans(xmat)
+xmat_c = xmat - rmn
+rvar = rowSums(xmat_c^2) / {dim(xmat)[2] - 1}
+rsd = sqrt(rvar)
+xmat_s = xmat_c / rsd
+yvec_s = {yvec - mean(yvec)} / sd(yvec)
+r4 = xmat_s %*% yvec_s / {n - 1}
+r4 = as.vector(r4)
+tm4 = proc.time() - tm4
+
+# Fifth and final approach, use cor and discard pairs without y
+tm5 = proc.time()
+r5 = cor(rbind(yvec,xmat))[1,]
+tm5 = proc.time() - tm5
+
+all.equal(r1,r2,r3,r4,r5)
+
+# Format and print the results
+cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n5: %5.3f s \n",
+            tm1[3],tm2[3],tm3[3],tm4[3],tm5[3]
+            )
+    )
+```
+
+The fourth approach using linear algebra and broadcasting and the fifth approach
+using `cor` directly and discarding all of the unwanted correlations are by 
+far the most efficient here.  However, we should keep in mind that this was a
+single trial and not a formal comparison with replicates.  
+
+We should also be aware
+that one of the reasons the other approaches are slower is the time needed
+to allocate memory for intermediate objects. The time needed to allocate memory
+can be influenced by something called *garbage collection* 
+`r emo::ji("wastebasket")` `r emo::ji("recycle")`.  In languages like
+R that bind names to values, garbage collection refers to freeing up memory that
+is no longer needed because there are no longer any names pointing to it.
+
+Garbage collection is triggered automatically when R needs more memory. As this could happen in the middle
+of something you are timing, you may get more consistent results if you explicitly force
+garbage collection prior to starting the timer. However, you rarely need to consider this
+elsewhere and not everyone agrees it is a best practice.
+```{r}
+gc()
+# First approach, calculate as a loop
+tm1 = proc.time()
+r1 = NULL
+for (i in 1:m) {
+    r1[i] = cor(xmat[i, ], yvec)
+}
+tm1 = proc.time() - tm1
+
+gc()
+# Second approach, functional style with apply
+tm2 = proc.time()
+r2 = apply(xmat, 1, function(v) cor(v, yvec))
+tm2 = proc.time() - tm2
+
+gc()
+# Third approach, use linear algebra
+tm3 = proc.time()
+rmn = rowMeans(xmat)
+xmat_c = xmat - outer(rmn, array(1, n))
+rsd = apply(xmat, 1, sd)
+xmat_s = xmat_c / outer(rsd, array(1, n))
+yvec_s = {yvec - mean(yvec)} / sd(yvec)
+r3 = xmat_s %*% yvec_s / {n - 1}
+r3 = as.vector(r3)
+tm3 = proc.time() - tm3
+
+gc()
+# Fourth approach, use linear algebra with broadcasting
+tm4 = proc.time()
+rmn = rowMeans(xmat)
+xmat_c = xmat - rmn
+rvar = rowSums(xmat_c^2) / {dim(xmat)[2] - 1}
+rsd = sqrt(rvar)
+xmat_s = xmat_c / rsd
+yvec_s = {yvec - mean(yvec)} / sd(yvec)
+r4 = xmat_s %*% yvec_s / {n - 1}
+r4 = as.vector(r4)
+tm4 = proc.time() - tm4
+
+gc()
+# Fifth and final approach, use cor and discard pairs without y
+tm5 = proc.time()
+r5 = cor(rbind(yvec,xmat))[1,]
+tm5 = proc.time() - tm5
+
+all.equal(r1,r2,r3,r4,r5)
+
+# Format and print the results
+cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n5: %5.3f s \n",
+            tm1[3],tm2[3],tm3[3],tm4[3],tm5[3]
+            )
+    )
+```
+
+**Exercise(s):** 
+
+  + Suggest a way to further speed up the final approach. Test it. 
+  + Investigate the differences of the fourth and fifth approaches for
+    different combinations of m and n. 
+
+## Functional programming in Monte Carlo Studies
+
+Recall our original example of computing coverage probabilities of nominal confidence
+intervals for non-Gaussian data.  
+
+If we wanted to carry out similar studies for many distributions, we may wish to
+write a function whose body carries out the simulation study using configurable
+parameters.  
+
+Here is the original example with a few changes.
+```
+mcrep = 10000                # Simulation replications
+n = 30                       # Sample size we are studying
+target = 1                   # value we are estimating
+conf_level = .95             # Confidence level
+
+xmat = rexp(n * mcrep)       # Simulate standard exponential data
+dim(xmat) = c(mcrep, n)      # Each row is a dataset
+mn = apply(xmat, 1, mean)    # Sample mean of each row
+std = apply(xmat, 1, sd)     # Sample SD of each row
+se = std / sqrt(n)           # Standard errors of the mean
+m = qnorm(1 - {1 - conf_level}/2)       # Multiplier for confidence level
+lcb = mn - m*se              # lower confidence bounds
+ucb = mn + m*se              # upper confidence bounds
+
+cvrg_prob = mean((lcb < target) & (ucb > target)) # coverage probability
+```
+
+Below we incorporate the simulation into a function with parameters for
+simulation settings. Here we use the special argument `...` to pass additional
+parameters to `rgen` by name. 
+
+```{r}
+## Function to estimate nominal coverage probabilities
+estimate_nominal_coverage = 
+  function(rgen, target, mcrep=1e4, n=30, conf_level=.95, ...){
+  # rgen       - a function generating a vector of simulated data, i.e rexp(),
+  #              with length equal to its first argument.
+  # target     - the actual expectation of rgen()
+  # mcrep, n   - the number of Monte Carlo replications and sample size, respectively.
+  # conf_level - the nominal coverage probability 
+  # ...        - additional parameters to pass to rgen
   
-  + $H_0: \theta = \theta'$
-  + $H_1: \theta \neq \theta'$
+  xmat = rgen(n * mcrep, ...)       # Simulate data
+  dim(xmat) = c(mcrep, n)      # Each row is a dataset
+  mn = apply(xmat, 1, mean)    # Sample mean of each row
+  std = apply(xmat, 1, sd)     # Sample SD of each row
+  se = std / sqrt(n)           # Standard errors of the mean 
+  m = qnorm(1 - {1 - conf_level}/2)       # Multiplier for confidence level
+  lcb = mn - m*se              # lower confidence bounds
+  ucb = mn + m*se              # upper confidence bounds
 
-where $\theta$ is a parameter from a probability distribution $F$ and $\theta'$ some
-hypothetical value of interest.  
+  mean((lcb < target) & (ucb > target)) # coverage probability
+}
+```
 
-Statistical tests are ususally formulated in terms of  test statistic $\phi(x)$ 
-which is a function of some observed data $x = (x_1, x_2, ..)$ . Sometimes these
-are associated with a "p-value", the probability of observing a test statistic 
-$\phi(X)$ at least as extreme the one observed under the assumption that $X \sim F(\theta')$.
+Now we can use `estimate_nominal_coverage` for multiple simulations.
 
-To be concrete, consider testing whether 
+```{r}
+# Geometric(p) with mean (1-p)/p 
+estimate_nominal_coverage(rgeom, target=3, p = .25)  
 
-Recall that the significance level $\alpha$ is the probability of rejecting the null
-hypothesis when this hypothesis is in fact true.  
+# Poisson(lambda) with mean lambda
+estimate_nominal_coverage(rpois, target=4, lambda = 4)  
 
-You may be familiar with the problem of multiple comparisons,
-[]
+# t(df) with mean 0
+estimate_nominal_coverage(rt, target=0, df=2)  
+```
 
+This could be useful, say, for exploring how the mean impacts the coverage 
+probability for a particular distribution.
+
+```{r}
+lambdas = exp(-seq(1,10,1))  # rate paramters to explore
+coverage_probs = c()         # store the results
+for (i in 1:length(lambdas)) {
+  rate = lambdas[i]
+  coverage_probs[i] = estimate_nominal_coverage(rexp, target=1/rate, rate=rate)
+}
+
+plot(-seq(1,10,1), coverage_probs, ylab='estimated coverage probability', 
+     xlab=expression('log'[10]*'(rate)'), las=1, pch=15, cex=1.2, ylim=c(.9,.95),
+     main='Nominal Coverage Probabilities for the Exponential Distribution')
+
+# Add Monte Carlo confidence bounds
+for (i in 1:length(lambdas)) {
+  x = rep(-seq(1,10,1)[i], 2)
+  y = coverage_probs[i] + qnorm(.975)*c(-1,1)*.25/sqrt(1e4)
+  lines(x,y)
+}
+
+# add a reference line for the global mean
+abline(h=mean(coverage_probs), lty='dashed', col='grey')
+```
