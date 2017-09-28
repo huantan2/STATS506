@@ -248,7 +248,7 @@ ymat
 ```
 
 In this case, if `X` has dimensions `m` and `n` and `v` length `k`
-we see that `(X-v)[i,j] = X[i,j] - v[{(i-1)*m+j mod k} + 1]`. 
+we see that `(X-v)[i,j] = X[i,j] - v[{(j-1)*m+i mod k} + 1]`. 
 
 This is useful for centering each row of a matrix,
 ```{r}
@@ -319,6 +319,7 @@ tm1 = proc.time() - tm1
 tm2 = proc.time()
 r2 = apply(xmat, 1, function(v) cor(v, yvec))
 tm2 = proc.time() - tm2
+all.equal(r1, r2)
 
 # Third approach, use linear algebra
 tm3 = proc.time()
@@ -330,6 +331,7 @@ yvec_s = {yvec - mean(yvec)} / sd(yvec)
 r3 = xmat_s %*% yvec_s / {n - 1}
 r3 = as.vector(r3)
 tm3 = proc.time() - tm3
+all.equal(r1, r3)
 
 # Fourth approach, use linear algebra with broadcasting
 tm4 = proc.time()
@@ -342,13 +344,16 @@ yvec_s = {yvec - mean(yvec)} / sd(yvec)
 r4 = xmat_s %*% yvec_s / {n - 1}
 r4 = as.vector(r4)
 tm4 = proc.time() - tm4
+all.equal(r1, r4)
 
 # Fifth and final approach, use cor and discard pairs without y
+# Note: The version presented in class contained an error.
 tm5 = proc.time()
-r5 = cor(rbind(yvec,xmat))[1,]
+y_xmat = cbind(yvec,t(xmat))
+r5 = cor(y_xmat)[-1,1]
+attr(r5,'names') = NULL
 tm5 = proc.time() - tm5
-
-all.equal(r1,r2,r3,r4,r5)
+all.equal(r1, r5)
 
 # Format and print the results
 cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n5: %5.3f s \n",
@@ -357,14 +362,18 @@ cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n5: %5.3f s \n",
     )
 ```
 
-The fourth approach using linear algebra and broadcasting and the fifth approach
-using `cor` directly and discarding all of the unwanted correlations are by 
-far the most efficient here.  However, we should keep in mind that this was a
-single trial and not a formal comparison with replicates.  
+The fourth approach using linear algebra and broadcasting is by
+far the most efficient here. All approaches are much more efficient than
+computing `choose(10001,2)` correlations when we only need 10,000.
 
-We should also be aware
+While we should keep in mind that this was a
+single trial and not a formal comparison with replicates, a difference
+of this size is still meaningful.  We should also be aware
 that one of the reasons the other approaches are slower is the time needed
-to allocate memory for intermediate objects. The time needed to allocate memory
+to allocate memory for (larger) intermediate objects. 
+
+#### Garbage Collection
+The time needed to allocate memory
 can be influenced by something called *garbage collection* 
 `r emo::ji("wastebasket")` `r emo::ji("recycle")`.  In languages like
 R that bind names to values, garbage collection refers to freeing up memory that
@@ -415,24 +424,16 @@ r4 = xmat_s %*% yvec_s / {n - 1}
 r4 = as.vector(r4)
 tm4 = proc.time() - tm4
 
-gc()
-# Fifth and final approach, use cor and discard pairs without y
-tm5 = proc.time()
-r5 = cor(rbind(yvec,xmat))[1,]
-tm5 = proc.time() - tm5
-
-all.equal(r1,r2,r3,r4,r5)
-
 # Format and print the results
-cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n5: %5.3f s \n",
-            tm1[3],tm2[3],tm3[3],tm4[3],tm5[3]
+cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n",
+            tm1[3],tm2[3],tm3[3],tm4[3]
             )
     )
 ```
 
 **Exercise(s):** 
 
-  + Suggest a way to further speed up the final approach. Test it. 
+  + Suggest a way to further speed up the broadcasting approach. Test it. 
   + Investigate the differences of the fourth and fifth approaches for
     different combinations of m and n. 
 
@@ -479,7 +480,7 @@ estimate_nominal_coverage =
   # conf_level - the nominal coverage probability 
   # ...        - additional parameters to pass to rgen
   
-  xmat = rgen(n * mcrep, ...)       # Simulate data
+  xmat = rgen(n * mcrep, ...)  # Simulate data
   dim(xmat) = c(mcrep, n)      # Each row is a dataset
   mn = apply(xmat, 1, mean)    # Sample mean of each row
   std = apply(xmat, 1, sd)     # Sample SD of each row
@@ -509,7 +510,7 @@ This could be useful, say, for exploring how the mean impacts the coverage
 probability for a particular distribution.
 
 ```{r}
-lambdas = exp(-seq(1,10,1))  # rate paramters to explore
+lambdas = exp(-seq(1,10,1))  # rate parameters to explore
 coverage_probs = c()         # store the results
 for (i in 1:length(lambdas)) {
   rate = lambdas[i]
