@@ -1,0 +1,38 @@
+---
+title: "Problem Set 2"
+author: "Statistics 506, Fall 2017"
+date: "Due Tuesday October 17 via Canvas"
+output:
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
+## Instructions
+
+  + Use Rmarkdown to create a single PDF file containing your answers to all the questions that are posed below. Embed your R code either by setting
+  "echo = TRUE" or by using fenced code blocks "```". 
+
+  + Your code should be clearly written and it should be possible to assess it by reading it. Use appropriate variable names and comments. Your style will be graded using the 
+  [style rubric]("./StyleRubric.html").
+
+  + All work for this probem set should be done using R. Do not do any data input/output or pre/post processing of results using tools other than R.
+
+  + Some of these exercises will require you to use commands or techniques that were not covered in class or in the course notes. You can use the web as needed to identify appropriate approaches. PQuestions are welcome at all times, but please make an attempt to locate relevant information yourself first.
+
+## Problems
+
+  1. Repeat problem 2 from the first problem set using R.  Use a dplyr pipe to construct the data frame. Present both a nicely formatted table and a graphical display.
+  
+  2. In this problem, you will examine data from field notes recording interactions between individuals in an animal community. Download the data for this problem [here](). The first column contains names of individual animals, the second a particular class of interaction, and the third a comma separated list of others involved in the interaction. 
+  
+    a. Reformat the data as a data-frame with one row per interaction type for each focal individual in the first column, and columns for individuals that count the frequencies of each interaction type with each focal individual.  You will need to so some data cleaning to match misspelled names to th name list provided.  You may find the `tidyr::separate` function useful The first few rows of the target data frame are shown below.
+    
+    b. For each interaction type, compute pair-wise chi-squared distances measuring the similarity between pairs of focal animals.  
+
+    c. Read the R help page for `cmdscale`. Use multidimensional scaling to find a two-dimensional embedding of the pairwise distances.  Use the MDS coordinates to produce a plot showing the relations among animals. Use a single plot, faceted by interaction type.
+    
+  
