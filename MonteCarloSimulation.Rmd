@@ -431,7 +431,7 @@ cat(sprintf("1: %5.3f s \n2: %5.3f s \n3: %5.3f s \n4: %5.3f s \n",
     )
 ```
 
-**Exercise(s):** 
+**Exercise(s):** c
 
   + Suggest a way to further speed up the broadcasting approach. Test it. 
   + Investigate the differences of the fourth and fifth approaches for
