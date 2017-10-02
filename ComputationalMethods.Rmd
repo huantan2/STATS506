@@ -1,0 +1,25 @@
+---
+title: "Computationally Intensive Methods"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: 
+    html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Bootstrap
+
+The bootstrap is method frequenlty used to find confidence intervals when 
+
+
+
+## Permutation Tests
+
+## Cross Validation
+
