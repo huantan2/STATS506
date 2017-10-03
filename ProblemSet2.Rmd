@@ -13,13 +13,13 @@ output:
 
 ## Instructions
 
-  + Use Rmarkdown to create a single PDF file containing your answers to all the questions that are posed below. Embed your R code either by setting
+  + Use Rmarkdown to create a PDF files containing your answers to each of the questions posed below. Embed your R code either by setting
   "echo = TRUE" or by using fenced code blocks "```". 
 
   + Your code should be clearly written and it should be possible to assess it by reading it. Use appropriate variable names and comments. Your style will be graded using the 
   [style rubric]("./StyleRubric.html").
 
-  + All work for this probem set should be done using R. Do not do any data input/output or pre/post processing of results using tools other than R.
+  + All work for this problem set should be done using R. Do not do any data input/output or pre/post processing of results using tools other than R.
 
   + Some of these exercises will require you to use commands or techniques that were not covered in class or in the course notes. You can use the web as needed to identify appropriate approaches. Questions are welcome at all times, but please make an attempt to locate relevant information yourself first.
 
@@ -27,13 +27,22 @@ output:
 
   1. Repeat problem 2 from the first problem set using R.  Use a dplyr pipe to construct the data frame. Present both a nicely formatted table and a graphical display.
   
-  2. In this problem, you will examine data from field notes recording interactions between individuals in an animal community. Download the data for this problem [here](). The first column contains names of individual animals, the second a particular class of interaction, and the third a comma separated list of others involved in the interaction. 
-  
-    a. Reformat the data as a data-frame with one row per interaction type for each focal individual in the first column, and columns for individuals that count the frequencies of each interaction type with each focal individual.  You will need to so some data cleaning to match misspelled names to th name list provided.  You may find the `tidyr::separate` function useful The first few rows of the target data frame are shown below.
-    
-    b. For each interaction type, compute pair-wise chi-squared distances measuring the similarity between pairs of focal animals.  
+  2. In this problem, you will examine data from field notes recording interactions between individuals in an animal community. This data has been simulated to resemble (in some respects) a real data set
+recently encountered.  The names in the simulated data were selected at random from a list of
+all babies issued social security numbers in the US during a specific year in the 1980s.  Download the data for this problem from the links below. The first column of the interactions data contains names of individual focus animals, the second a particular class of interaction, and the third a comma separated list of others involved in the interaction. The other two files provide unique names for the focal individuals (those in the first column) and all individuals in the community (including the focal individuals).
 
-    c. Read the R help page for `cmdscale`. Use multidimensional scaling to find a two-dimensional embedding of the pairwise distances.  Use the MDS coordinates to produce a plot showing the relations among animals. Use a single plot, faceted by interaction type.
+    data
+      + [interactions](Stats506_F17_ps2_interactions.csv)
+
+      + [all_names](Stats506_F17_ps2_all_names.csv)
+  
+      + [focal_names](Stats506_F17_ps2_focal_names.csv)
+  
+    a. Reformat the data as a data-frame with one row per interaction type for each focal individual in the first column. The reformatted data should have columns for all individuals counting the frequencies of each interaction type with each focal individual.  You will need to so some data cleaning to match misspelled names to the name list provided.  You may find the `tidyr::separate` function useful. 
+    
+    b. For each interaction type, compute pair-wise canberra distances measuring the similarity between pairs of focal animals.  See the R help page for `dist()` for additional details.
+
+    c. Read the R help page for `cmdscale()`. Use multidimensional scaling to find a two-dimensional embedding of the pairwise distances.  Use the MDS coordinates to produce plots showing the relations among animals for each interaction type. Present these plots as a single figure faceted by interaction type.
     
   3. In this question you will design a Monte Carlo
     study to estimate a well known constant. Your code should use vectorization where possible.  
@@ -50,8 +59,9 @@ output:
     
   4.  Design a Monte Carlo study to compare the coverage probabilities and width of the following two confidence intervals for the median:
 
-    i.  the nonparametric bootstrap with 1,000 bootstrap samples;
+    i.  the non-parametric bootstrap with 1,000 bootstrap samples;
   
     ii. the robust estimator $\bar\theta \pm z_{\alpha/2}\bar\sigma$ where $\bar \theta$ is the sample median and $\bar\sigma$ is 1.35 times the median absolute deviation. 
   
-  Compare the estimators for a variety (4-6) of distributions and (3-5) sample sizes.
+  Compare the estimators for a variety (4-6) of distributions and (3-5) sample sizes
+  and report your results.
