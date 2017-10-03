@@ -13,13 +13,229 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Bootstrap
+## Bootstrapping
 
-The bootstrap is method frequenlty used to find confidence intervals when 
+The bootstrap is a generic statistical method for assessing the accuracy of an
+estimator.  It is frequently used to find confidence intervals when exact or 
+asymptotic analytic formulas are unavailable or unsatisfactory.  
 
+The basic idea of bootstrapping
+is to build up the sampling distribution of an estimator by re-sampling the data many
+times. In the _non-parametric bootstrap_ this is done by drawing $B$ copies of 
+the data from the empirical distribution, $\mathbb{P}$:  
 
+$$
+X_1, \dots, X_n \sim_{iid} P, \qquad \mathbb{P}(t) = \frac{1}{n} \sum_{i=1}^n 1[X_i \le t]
+$$
+In the _parametric boostrap_ the data are re-sampled instead from an (assumed) parametric
+(i.e. Gaussian) estimate of $P$.  For a comparison of the two see [this talk](https://statweb.stanford.edu/~tibs/ftp/guelph.ps) by Robert Tibshirani.  
+
+Continuing with the _non-parametric bootstrap_, the basic idea is to draw many
+artificial data sets from $\mathbb{P}$,
+
+$$
+\{(X^*_1, \dots, X_n^*)_b\}_{b=1}^B \sim_{iid} \mathbb{P}
+$$
+which is equivalent to drawing a sample of size $n$ from the data $X_1, \dots, X_n$ with replacement.
+
+There are various methods for constructing a confidence interval for an estimator
+$\bar{\theta}(X)$ using a bootstrap sample. The most common is the _percentile method_ 
+in which the confidence bounds are taken as samples quantiles from the bootstrapped
+distribution of the estimator. We continue with an example below.
+
+### Boostrap Confidence Bounds for Quantiles
+
+Suppose we have iid data $X_1, \dots, X_n$ from an unknown distribution and want
+to construct a confidence interval for the inter-quartile range. 
+
+```{r}
+n=50
+x = rgamma(n,shape=3,rate=1)
+boxplot(x, las=1, main='Boxplot of Data')
+iqr_est = unname(diff(quantile(x, c(.25, .75))))
+iqr_est
+```
+
+To form a (non-parametric) bootstrap estimate, we draw $B$ new data sets from the
+original data.
+
+```{r}
+B = 1e3  ## Number of bootstrap samples
+boot_samples = sample(x, n*B, replace=TRUE)  ## Sample with replacement
+dim(boot_samples) = c(n, B) ## each column is a dataset
+```
+
+For each bootstrap sample we compute the statistic of interest, in this case the
+IQR. This operation is not easy to vectorize so we use an implicit loop instead.
+
+```{r}
+boot_iqr = apply(boot_samples, 2, function(b) unname(diff(quantile(b, c(.25, .75)))))
+```
+
+This gives us $B$ samples of the IQR which we use to estimate its sampling distribution
+and construct a 95% confidence interval.
+
+```{r}
+hist(boot_iqr, las=1, col='green4', xlab='Estimated IQR', 
+     cex.axis=1.5, cex.lab=1.5, cex.main=1.5)
+
+boot_q = quantile(boot_iqr, c(.025, .975))
+abline(v=boot_q, lty='dashed', lwd=2)
+
+boot_ci = sprintf('%3.1f (%3.1f, %3.1f)', iqr_est, boot_q[1], boot_q[2])
+cat(boot_ci,'\n')
+```
+
+Below is a function for comparison slightly modified from Professor Shedden's
+2016 [notes](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/r_vectorization/) on vectorization.  
+
+```{r}
+# Return a bootstrap 95% confidence interval for the
+# q^th population quantile based on an iid sample.
+quant_ci = function(y, q=0.5, n_boot=1000) {
+    m = length(y)
+    mat = sample(y, n_boot*m, replace=TRUE)
+    dim(mat) = c(n_boot, m)
+    f = function(x)quantile(x, q)
+    v = apply(mat, 1, f)
+    lcb = quantile(v, 0.025)
+    ucb = quantile(v, 0.975)
+    return(c(lcb, ucb))
+}
+```
+
+For a gentle introduction to the underlying theory, see this [blog post](https://normaldeviate.wordpress.com/2013/01/19/bootstrapping-and-subsampling-part-i/)
+by Professor Larry Wasserman. 
 
 ## Permutation Tests
 
-## Cross Validation
+Another versatile statistical method heavily reliant on computation is permutation
+testing. Permutation tests are often used with non iid data or when comparing non
+standard statistics. The general idea is to construct a reference distribution for
+determining the significance of an observed test statistic by repeatedly permuting 
+group labels.  
+
+Suppose we have $n$ total samples from 2 groups.  Then there are
+$m = \begin{pmatrix} n \\ 2 \end{pmatrix}$  possible group assignments.  If this number
+is reasonably small all possible group labels can be considered. Let $\pi_i$ denote
+the $i^{th}$ permutation and $\bar \theta(X)$ be the statistic of interest. Then,
+the permutation p-value for a two-sided test is:
+
+$$
+p = \frac{1}{m} \sum_{i=1}^m 1[~|\bar \theta(X)|~ \ge ~|\bar\theta(\pi_i(X))|~].
+$$
+
+### Kolmogorov-Smirnov Test under Dependence
+
+The Kolmogorov-Smirnov (KS) test is a general non-parametric test for the equality
+of two distributions.  Let $X_1, \dots, X_n \sim F_x$ and $Y_1, \dots, Y_n \sim F_y$.
+
+The KS statistic for testing the equality of these two distributions is the 
+maximum difference in the corresponding empirical distributions:
+
+$$
+D(X,Y) = \sup_t |\mathbb{F}_x(t) - \mathbb{F}_y(t)|.
+$$
+When $X$ and $Y$ are iid samples there is asymptotic theory for the distribution
+of $D(X,Y)$ that can be used for assessing significance. However, non-iid data
+are frequently encountered in science such as in the case of repeated measures.
+
+Suppose for instance we would like to compare the distribution of some 
+structural property from a specific vertebra between two treatment groups in an animal study.  In this
+example, we choose four location from each animal and then image each location three times to 
+obtain our sample.  Measurements are correlated within animals and within images 
+but assumed independent between animals.  
+
+Below we first generate data from the structure above assuming a 50% increase 
+in variance between treatment and control groups.  Then we
+construct a permutation test that respects this dependence and apply it our
+synthetic data.
+
+```{r, simulation}
+## Settings 
+nAn = 12 # anmimals
+nLo = 4 # locations
+nIm = 3 # images
+rLo = .2 # correlation between locations
+rIm = .7 # correlation between images
+
+## Form the correlation matrix within an animal
+R = matrix(rLo, nLo*nIm, nLo*nIm)
+B = matrix(rIm, nIm, nIm)
+for(i in 1:nLo){
+    R[seq((i-1)*nIm+1,i*nIm),seq((i-1)*nIm+1,i*nIm)] = B
+}
+diag(R) = 1
+
+## Here is a quick image to illustrate
+R_all = as.matrix(Matrix::bdiag(lapply(1:nAn, function(x) R)))
+filled.contour(R_all[144:1,])
+#my_colors = colorRampPalette(c('white','red'),alpha=.5)(10)
+#image(R_all[144:1,], col=my_colors, breaks=seq(0,1,.1), xaxt='n', yaxt='n')
+
+
+## Introduce correlation by right multiplying by Cholesky 
+## decomposition of correlation matrix.
+chR = chol(R)
+control = matrix(rnorm(nAn*nLo*nIm, 0, 1), nrow=nAn) %*% chR
+treat   = matrix(rnorm(nAn*nLo*nIm, 0, 1.5), nrow=nAn) %*% chR
+
+# Convert back to vector i.e. "long form" keeping 
+# measurements from the same animal in blocks
+control = as.vector(t(control))
+treat = as.vector(t(treat))
+
+# Compute the CDFs
+F.t = ecdf(treat)
+F.c = ecdf(control)
+
+# Plot the CDFs
+plot(F.t, col='blue', main='Cumulative Distribution Functions', las=1)
+lines(F.c, col='black')
+legend('topleft', legend=c('Treatment', 'Control'), 
+       lty='solid', lwd=2, col=c('blue','black'), bty='n')
+
+# Compute the test statistic and show as red-dashed line
+z = c(treat,control)
+z = z[order(z)]
+delta = abs(F.t(z) - F.c(z))
+x = z[which.max(delta)]
+lines(c(x, x), c(F.t(x), F.c(x)), col='red', lty='dashed', lwd=2)
+
+## Function to compute the KS statistic
+ks_stat = function(x, y){
+  # form unique points and order
+  z = c(x, y)
+
+  # compute ecdfs and differences
+  max(abs(ecdf(x)(z) - ecdf(y)(z)))
+}
+
+
+## x and y here are vectors
+## permute gives the number of permutations to do
+compute_ks = function(x, y, permute=FALSE){
+  if(permute){
+    ## construct one block per column
+    z = c(x,y)
+    dim(z) = c(permute, {length(x) + length(y)} / permute)
+    ## sample columns for group assignment
+    ind = sample(1:ncol(z), length(x)/permute, replace=FALSE)    
+    x = z[,ind]; dim(x) = NULL
+    y = z[,-ind]; dim(y) = NULL
+  }
+  ks_stat(x, y)
+}
+
+## ks_perm_test test the distribution of x versus y 
+## by permuting group labels in blocks of the indicated size.
+ks_perm_test = function(x, y, nperm=1e3, block=nLo*nIm){
+  ks_stat = compute_ks(x, y)
+  ks_perm = sapply(1:nperm, function(i){compute_ks(x, y, permute=block)})
+  1 - mean(ks_stat >= ks_perm)
+}
+
+ks_perm_test(treat, control)
+```
+
 

@@ -33,5 +33,9 @@ output:
   <a href="./dplyr.html">RECS Case Study: Home Types</a>
   
   <a href="./MonteCarloSimulation.html">Monte Carlo Simulation and Vectorization in R</a>
+  
+  <a href="./StringManipulation.html">String Manipulation and Regular Expressions</a>
+  
+  <a href="./ComputationalMethods.html">Bootstrapping and Permutation Tests</a>
   </div>
 </div>
