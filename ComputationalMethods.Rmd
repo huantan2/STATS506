@@ -177,6 +177,7 @@ filled.contour(R_all[144:1,])
 ## Introduce correlation by right multiplying by Cholesky 
 ## decomposition of correlation matrix.
 chR = chol(R)
+set.seed(103)
 control = matrix(rnorm(nAn*nLo*nIm, 0, 1), nrow=nAn) %*% chR
 treat   = matrix(rnorm(nAn*nLo*nIm, 0, 1.5), nrow=nAn) %*% chR
 
@@ -214,28 +215,48 @@ ks_stat = function(x, y){
 
 ## x and y here are vectors
 ## permute gives the number of permutations to do
-compute_ks = function(x, y, permute=FALSE){
-  if(permute){
-    ## construct one block per column
-    z = c(x,y)
-    dim(z) = c(permute, {length(x) + length(y)} / permute)
-    ## sample columns for group assignment
-    ind = sample(1:ncol(z), length(x)/permute, replace=FALSE)    
-    x = z[,ind]; dim(x) = NULL
-    y = z[,-ind]; dim(y) = NULL
-  }
+permute_ks = function(x, y, block_size=FALSE){
+
+  ## construct one block per column
+  z = c(x,y)
+  dim(z) = c(block_size, {length(x) + length(y)} / block_size)
+  ## sample columns for group assignment
+  ind = sample(1:ncol(z), length(x)/block_size, replace=FALSE)    
+  x = z[,ind]; dim(x) = NULL
+  y = z[,-ind]; dim(y) = NULL
+  
+  # compute stat for permuted columns
   ks_stat(x, y)
 }
 
 ## ks_perm_test test the distribution of x versus y 
 ## by permuting group labels in blocks of the indicated size.
-ks_perm_test = function(x, y, nperm=1e3, block=nLo*nIm){
-  ks_stat = compute_ks(x, y)
-  ks_perm = sapply(1:nperm, function(i){compute_ks(x, y, permute=block)})
+ks_perm_test = function(x, y, nperm=1e3, block_size=nLo*nIm){
+  ks_stat = ks_stat(x, y)
+  ks_perm = sapply(1:nperm, function(i){permute_ks(x, y, block_size=block_size)})
   1 - mean(ks_stat >= ks_perm)
 }
 
 ks_perm_test(treat, control)
 ```
 
+Finally, let us compute the power of this test at the 5% significance level.
+**Warning**: this will take several minutes to run.
+```{r}
+mcrep = 1e3
+
+results = vector(length=mcrep, mode='logical')
+for(i in 1:mcrep){
+  control = matrix(rnorm(nAn*nLo*nIm, 0, 1), nrow=nAn) %*% chR
+  treat   = matrix(rnorm(nAn*nLo*nIm, 0, 1.5), nrow=nAn) %*% chR  
+  results[i] = {ks_perm_test(treat, control) <= .05}
+}
+
+lcb = mean(results) - qnorm(.975)*.5/sqrt(mcrep)
+ucb = mean(results) + qnorm(.975)*.5/sqrt(mcrep)
+
+result_str = sprintf('Estimated power: %3.1f%% (%3.1f%%, %3.1f%%).\n',
+        100*mean(results), 100*lcb, 100*ucb)
+cat(result_str)
+```
 

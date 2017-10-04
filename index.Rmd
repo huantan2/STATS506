@@ -37,5 +37,7 @@ output:
   <a href="./StringManipulation.html">String Manipulation and Regular Expressions</a>
   
   <a href="./ComputationalMethods.html">Bootstrapping and Permutation Tests</a>
+  
+  <a href="./ProblemSet2.html">Problem Set 2</a>
   </div>
 </div>
