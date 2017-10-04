@@ -1,0 +1,108 @@
+---
+title: 'RECS Case Study: GLM'
+author: "Statistics 506, Fall 2017"
+date: ""
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## About
+
+In these case studies, we will use R to fit generalized linear models and
+answer questions of interest from the RECS data.  Genearlized linear models
+have the following form relating a dependent variable $Y$ to independent variables
+$X$ and coefficients $\beta$:
+
+$$
+h(E[Y| X]) = X\beta.
+$$
+Here $h(\cdot)$ is called the _link function_ and we will often be interested in
+its inverse $g(\cdot)$ so that an equivalent specification is:
+
+$$
+E[Y | X] = g(X\beta).
+$$
+The matrix product $X\beta$ in a generalized linear model is known as the _linear predictor_.
+
+Classical linear regression has this form with the _identity link_ $h(x) = g(x) = x$,
+
+$$
+E[Y | X] = X\beta.
+$$
+Typically, we formulate this as a least squares problem and carry out inference
+under the assumption that $Y | X \sim N(\mu = E[Y|X], \sigma^2)$. In generalized
+linear models we instead allow $Y | X$ to follow a distribution more
+natural to the scale of $Y$.
+
+### GLMs in R
+Generalized linear models can be fit in $R$ using the `glm()` function. The first
+argument is `formula` used for specifying the linear predictor in terms of one
+or more columns from a data frame.  The other key arugment is `family` which determines
+the specific model to be fit.
+
+
+### Logistic Regression
+
+Logistic regression is a commonly used technique for modeling a binary outcome.
+
+$$
+\log \frac{P(Y = 1 | X)}{P(Y = 0 | X)}  = X\beta
+$$
+
+### Case Study: Energy Star Compliance
+
+In this first case study we will use logistic regression to explore predictors
+of whether a home's primary fridge is Energy Star compliant.  For simplicity, we
+will assume this is a simple random sample and ignore the survey weights. You can
+find a version of this example in Stata [here]('./RECS_ES.do').
+
+First, we will load the RECS data and clean up some variables of interest.
+
+```{r setup}
+## load packages
+library(tidyverse) # for dplyr and readr
+
+## read or load data
+data_file = './recs2009_public.RData'
+if(!file.exists(data_file)){
+  recs = read_delim('./recs2009_public.csv', col_names=TRUE, delim=',')
+  save(recs,file=data_file)
+} else{
+  foo = load(data_file)
+  cat(sprintf('Loaded object(s) %s from %s.\n',foo,data_file))
+}
+
+## tidy data
+# function to decode region
+decode_region = function(rvec){
+  sapply(rvec, function(r) switch(r, "NE", "MW", "S", "W"))
+}
+
+recs = recs %>% mutate(es_fridge = ifelse(ESFRIG < 0, NA, ESFRIG),
+                       totsqft = TOTSQFT / 100,
+                       region = decode_region(REGIONC))
+```
+
+Now we are ready to fit a logistic regression.
+
+```{r}
+fit0 = glm(es_fridge ~ 0 + region + totsqft, data=recs,
+           family=binomial(link='logit'))
+summary(fit0)
+class(fit0)
+typeof(fit0)
+```
+
+```{r}
+broom::tidy(fit0)
+```
+
+
