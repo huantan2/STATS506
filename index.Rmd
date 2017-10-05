@@ -39,5 +39,8 @@ output:
   <a href="./ComputationalMethods.html">Bootstrapping and Permutation Tests</a>
   
   <a href="./ProblemSet2.html">Problem Set 2</a>
+  
+  <a href="./Parallel_Computing_R.html">Parallel Computing in R</a>
+
   </div>
 </div>
