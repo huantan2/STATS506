@@ -118,8 +118,10 @@ determining the significance of an observed test statistic by repeatedly permuti
 group labels.  
 
 Suppose we have $n$ total samples from 2 groups.  Then there are
-$m = \begin{pmatrix} n \\ 2 \end{pmatrix}$  possible group assignments.  If this number
-is reasonably small all possible group labels can be considered. Let $\pi_i$ denote
+$m = \begin{pmatrix} n \\ k \end{pmatrix}$  possible group assignments where 
+$k$ is the size of the first group. Note that there are actually $n!$ permutations,
+but they are not all unique.  If this number
+is reasonably small all possible group assignments can be considered. Let $\pi_i$ denote
 the $i^{th}$ permutation and $\bar \theta(X)$ be the statistic of interest. Then,
 the permutation p-value for a two-sided test is:
 
