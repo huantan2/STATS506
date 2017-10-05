@@ -11,6 +11,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+library(dplyr)
 ```
 
 ## Bootstrapping
@@ -124,6 +126,96 @@ the permutation p-value for a two-sided test is:
 $$
 p = \frac{1}{m} \sum_{i=1}^m 1[~|\bar \theta(X)|~ \ge ~|\bar\theta(\pi_i(X))|~].
 $$
+### Basic Example: Chick Weights
+
+To illustrate the basic idea behind permutation tests we consider the problem
+of comparing the weights of chicks fed on a variety of diets.  The data for
+this example comes from the R `datasets` package and can be loaded using 
+`data(chickwts)`.
+
+```{r cw1}
+data(chickwts)
+str(chickwts)
+with(chickwts, boxplot(weight~feed, las=1), 'Chick Weight Data')
+```
+
+In this setting a permutation test is not necesssary and an anova would likely
+be more appropriate.
+
+```{r}
+anova(lm(weight~feed, data=chickwts))
+```
+
+However, if we were concerned about normality or dependence in similarly sturcutured
+data we could carry out a permutation test using the F statistics as above. First,
+here is a function to compute $F$ from a data frame with two columns 'response' 
+and 'group',
+
+```{r}
+# df should have exactly two columns "response" and "group"
+compute_F = function(df){
+  # compute the grand mean
+  gm = mean(df$response)
+  
+  # compute group means
+  sum_stat = df %>% group_by(group) %>% 
+    summarize(xbar = mean(response), v = var(response), n=n())
+  
+  # compute the mean squares
+  ms_group = sum({sum_stat$xbar - gm}^2*sum_stat$n) / {nrow(sum_stat) - 1}
+  ms_error = sum(sum_stat$v*{sum_stat$n-1}) / {nrow(df) - nrow(sum_stat)}
+  
+  ms_group / ms_error
+}
+```
+
+Now, let's look at a single permutation:
+
+```{r}
+df = chickwts %>% rename(response = weight, group = feed)
+df_perm = df %>% mutate(group = group[sample(1:nrow(df), replace=FALSE)])
+head(df_perm)
+compute_F(df_perm)
+```
+
+We can write a function to compute the F statistic for the permuted sample:
+
+```{r}
+permute_F = function(df){
+  compute_F({df %>% mutate(group = group[sample(1:nrow(df), replace=FALSE)])})
+}
+permute_F(df)
+```
+
+
+Now we are ready to carry out the permutation test. First, compute the observed
+statistic:
+```{r}
+F_obs = compute_F(df)
+```
+
+Now we can permute many times to build up the reference distribution, 
+```{r}
+nperm = 1e3
+perm_F = sapply(1:nperm, function(i) permute_F(df) )
+hist(perm_F, las = 1, main='F statistics for permuted Chick Weight Data', 
+     col=rgb(0,0,1,.5), xlab='F')
+```
+
+Finally we can report a p-value by comparing the observed F to the values simulated
+from the null distribution by permutation:
+
+```{r}
+p = mean(F_obs <= perm_F)
+pval_str = ifelse(p > 0, sprintf('p = %5.3f', p), sprintf('p < %5.3f', 1/nperm))
+cat(pval_str)
+```
+In this example the observed F statistic was greater than all sampled permuted values
+so we estimate it to be less than one over the number of permutations.
+
+In reality, we would prefer a vectorized version but this example is intended
+to illustrate the principle of permutation testing only.
+
 
 ### Kolmogorov-Smirnov Test under Dependence
 
@@ -214,7 +306,7 @@ ks_stat = function(x, y){
 
 
 ## x and y here are vectors
-## permute gives the number of permutations to do
+## block_size tells us how to chunk x and y
 permute_ks = function(x, y, block_size=FALSE){
 
   ## construct one block per column
@@ -232,9 +324,9 @@ permute_ks = function(x, y, block_size=FALSE){
 ## ks_perm_test test the distribution of x versus y 
 ## by permuting group labels in blocks of the indicated size.
 ks_perm_test = function(x, y, nperm=1e3, block_size=nLo*nIm){
-  ks_stat = ks_stat(x, y)
+  ks_obs = ks_stat(x, y)
   ks_perm = sapply(1:nperm, function(i){permute_ks(x, y, block_size=block_size)})
-  1 - mean(ks_stat >= ks_perm)
+  mean(ks_obs <= ks_perm)
 }
 
 ks_perm_test(treat, control)
