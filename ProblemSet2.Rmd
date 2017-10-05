@@ -64,3 +64,4 @@ all babies issued social security numbers in the US during a specific year in th
   
   Compare the estimators for a variety (4-6) of distributions and (3-5) sample sizes
   and report your results.
+

@@ -88,3 +88,9 @@ My thanks to the student who provided the links.
      hearing loss?
      
      
+  
+## Solutions
+
+  + [Problem2_final.do](./Problem2_final.do)
+  
+  + [Problem3_final.do](./Problem3_final.do)

@@ -1,0 +1,36 @@
+---
+title: "Bonferonni-Holm Case Study"
+author: "Statistics 506, Fall 2017"
+date: "9/27/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Case Study: The Bonferonni-Holm Method
+
+### Background
+As background, recall that we often discuss statistical tests in terms of power
+and the type I error rate or significance level.  Statistical tests often take 
+the form,
+  
+  + $H_0: \theta = \theta'$
+  + $H_1: \theta \neq \theta'$
+
+where $\theta$ is a parameter from a probability distribution $F$ and $\theta'$ some
+hypothetical value of interest.  
+
+Statistical tests are ususally formulated in terms of  test statistic $\phi(x)$ 
+which is a function of some observed data $x = (x_1, x_2, ..)$ . Sometimes these
+are associated with a "p-value", the probability of observing a test statistic 
+$\phi(X)$ at least as extreme the one observed under the assumption that $X \sim F(\theta')$.
+
+To be concrete, consider testing whether 
+
+Recall that the significance level $\alpha$ is the probability of rejecting the null
+hypothesis when this hypothesis is in fact true.  
+
+You may be familiar with the problem of multiple comparisons,
+[]
