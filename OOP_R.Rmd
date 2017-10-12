@@ -9,6 +9,8 @@ output:
     css: styles.css
 ---
 
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -211,9 +213,10 @@ noquote(lines[grep('class', lines)])
 ```
 
 
+
 ## The S4 System
 The S3 system described above is very flexible making it easy to work with, but 
-at the expense of the safety and uniformity of a more formal OO system.  
+at the expense of the safety and uniformity of a more formal OO system. 
 
 The S4 system is a more formal OO system in R. One key difference is that S4
 classes have formal definitions and classes, methods, and generics must all be
@@ -241,7 +244,7 @@ x
 The function `new` is used above as a _constructor_ for creating an object
 with the desired class.  Most S4 classes defined in packages you download
 have their own constructors which you should use when defined.  We can
-create a constructor by assigning the output of `setClass` a name:
+create a default constructor by assigning the output of `setClass` a name:
 
 ```{r}
 color_vector = 
@@ -255,6 +258,10 @@ color_vector =
 y = color_vector(name="y", data = rnorm(100, 0, 2), color="red")
 class(y)
 ```
+
+You could also create an explicit constructor by writing a function that calls
+new and manipulates the object in some way, say providing defaults for 
+attributes.
 
 ### Accessing slots in an S4 object
 
@@ -278,7 +285,7 @@ names(attributes(x))
 
 ### S4 Methods
 
-We can control how an object of class `color_vector` gets printed by defining 
+We can control how an object of class `color_vector` gets displayed by defining 
 a `show` method (the S4 equivalent of `print`).
 
 
@@ -304,44 +311,8 @@ Now, when we call `show` on an object of class `color_vector` R will use the cus
 method.
 
 ```{r}
-slot(x, 'data') = rnorm(100, 1, 1)
 show(x)
 ```
-
-To create new S4 generics, we use `setGeneric` and  `standardGeneric`.
-
-```{r}
-
-```
-
-## An S4 Example
-
-```{r}
-library(stats4)
-
-# Generate some data
-y = rpois(30, 14)
-
-# Write a function to compute negative log likelihood
-neg_log_lik <- function(lambda) - sum(dpois(y, lambda, log=TRUE))
-
-fit = mle(neg_log_lik, start=list(lambda=mean(y)), nobs=length(y))
-isS4(fit)
-
-fit_profile = profile(fit)
-class(fit_profile)
-plot(fit_profile)
-
-names(attributes(fit_profile))
-diff(fit_profile@profile$lambda[,2])
-```
-
-To view the definition of an S4 method, use `getMethod`. 
-```{r}
-head(getMethod(profile,'mle'))
-```
-
-
 
 ## Resources
 

@@ -1,7 +1,7 @@
 ---
 title: "Problem Set 2"
 author: "Statistics 506, Fall 2017"
-date: "Due Tuesday October 17 via Canvas"
+date: "Due Thursday October 19 via Canvas"
 output:
   html_document:
     theme: journal
@@ -17,7 +17,7 @@ output:
   "echo = TRUE" or by using fenced code blocks "```". 
 
   + Your code should be clearly written and it should be possible to assess it by reading it. Use appropriate variable names and comments. Your style will be graded using the 
-  [style rubric]("./StyleRubric.html").
+  [style rubric](./StyleRubric.html).
 
   + All work for this problem set should be done using R. Do not do any data input/output or pre/post processing of results using tools other than R.
 

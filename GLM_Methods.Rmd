@@ -1,0 +1,179 @@
+---
+title: "RECS Case Study: Methods for GLMs"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: 
+    html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+[Course Homepage](https://jbhender.github.io/Stats506/)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## S3 in Action - Methods for the GLM Class
+
+In this example we will look at methods associated with the `glm`
+class of objects representing models fits from [generalized linear models](https://en.wikipedia.org/wiki/Generalized_linear_model).
+
+Just as the name implies, GLMs _generalized_ the linear model through
+the use of a _link_ function relating the expected or mean outcome to a 
+_linear predictor_. 
+
+Generalized linear models
+have the following form relating a dependent variable $Y$ to independent variables
+$X$ and coefficients $\beta$:
+
+$$
+h(E[Y| X]) = X\beta.
+$$
+
+Here $h(\cdot)$ is called the _link function_ and we will often be interested in
+its inverse $g(\cdot)$ so that an equivalent specification is:
+
+$$
+E[Y | X] = g(X\beta).
+$$
+The matrix product $X\beta$ in a generalized linear model is known as the _linear predictor_.
+
+Classical linear regression has this form with the _identity link_ $h(x) = g(x) = x$,
+
+$$
+E[Y | X] = X\beta.
+$$
+Two popular GLMs are:
+
+  + logistic regression for binary data with the _logit link_
+$h(x) = log(x/(1-x))$ giving the model 
+
+  $$
+  \log \frac{ P(Y = 1 | X) }{P(Y = 0|X)} = X\beta,
+  $$
+
+  + Poisson regression for count data with the _log link_ $h(x) = \log(x)$
+  
+  $$
+  \log E[Y | X] = X\beta.
+  $$
+
+### GLMs in R
+Generalized linear models can be fit in $R$ using the `glm()` function. The first
+argument is `formula` used for specifying the linear predictor in terms of one
+or more columns from a data frame.  The other key argument is `family` which determines
+the specific model to be fit.
+
+### Case Study: Energy Star Compliance
+
+In this first case study we will use logistic regression to explore predictors
+of whether a home's primary fridge is Energy Star compliant.  For simplicity, we
+will assume this is a simple random sample and ignore the survey weights. You can
+find a version of this example in Stata [here](./RECS_ES.do).
+
+First, we will load the [RECS data](./recs2009_public.RData) and clean up some variables of interest.
+
+```{r data, warning=FALSE, message=FALSE}
+## load packages
+library(tidyverse) 
+
+## read or load data
+data_file = './recs2009_public.RData'
+if(!file.exists(data_file)){
+  recs = read_delim('./recs2009_public.csv', col_names=TRUE, delim=',')
+  save(recs,file=data_file)
+} else{
+  foo = load(data_file)
+  cat(sprintf('Loaded object(s) %s from %s.\n',foo,data_file))
+}
+
+## tidy data
+# function to decode region
+decode_region = function(rvec){
+  sapply(rvec, function(r) switch(r, "NE", "MW", "S", "W"))
+}
+
+recs = recs %>% 
+  mutate(es_fridge = ifelse(ESFRIG < 0, NA, ESFRIG),
+                       totsqft = TOTSQFT / 100,
+                       region = decode_region(REGIONC)
+        ) %>% 
+  filter(!is.na(es_fridge))
+```
+
+Now we are ready to fit a logistic regression.  Note that R will treat
+"region" as a factor since it is of class `r typeof(recs$region)`.
+
+```{r}
+fit0 = glm(es_fridge ~ 0 + region + totsqft, data=recs,
+           family=binomial(link='logit'))
+summary(fit0)
+class(fit0)
+typeof(fit0)
+```
+
+Notice that the `glm` class _inherits_ from the `lm` class for linear models. 
+Above we used the `summary` method to review the model fit `fit0`.  Here are some
+other S3 methods we can make use of:
+
+```{r}
+print(fit0)
+coef(fit0)
+round(vcov(fit0),4)
+broom::tidy(fit0)
+```
+
+Be careful about inheritance if you try to use the `plot` method as plots for
+linear models may not be the most instructive for GLMs.
+
+```{r}
+methods(plot)[grep('lm', methods(plot))]
+```
+
+Another useful generic is `predict` for using the fitted model to predict 
+expected values for new data. Below, we use predict to compute
+"adjusted predictions at the mean" for the region and square footage variables.
+
+Here  we compute the adjusted predicitons for regions at the mean for
+total square feet.
+```{r}
+## Set up a new data frame
+recs_regions_atmean = 
+  tibble(region=unique(recs$region)) %>%
+  mutate(totsqft=mean(recs$totsqft))
+
+## Use predict to estimate
+## probabilities for the new data
+m0 = predict(fit0, recs_regions_atmean, type='response', se=TRUE)
+
+## We can include these in the data frame and plot to compare
+recs_regions_atmean %>%
+  mutate(fit=m0$fit, se=m0$se.fit, lwr=fit - 2*se, upr=fit + 2*se) %>%
+  mutate(region=factor(region,region[order(fit)])) %>% # order
+  ggplot(aes(y=region, x=fit)) +
+  geom_point() + 
+  geom_errorbarh(aes(xmin=lwr, xmax=upr)) + 
+  xlab('Predicted probability for average-sized house') +
+  ggtitle('Estimated usage of Energy Star compliant refrigerators by region.')
+```
+
+We will look at additional examples next week.
+
+```{r, echo=FALSE, include=FALSE}
+recs %>% 
+  group_by(region) %>%
+  summarize(Count=n()) %>%
+  spread(region,Count) %>%
+  mutate(Total=MW+NE+S+W,
+         MW=MW/Total, 
+         NE=NE/Total,
+         S =S/Total,
+         W =W/Total
+         ) %>%
+  gather(region,prop, MW:W)
+  
+```
+
+

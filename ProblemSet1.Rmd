@@ -22,7 +22,7 @@ with the parts clearly labeled using comments.
     - Also submit a single PDF file containing your answers to all the questions that are posed below.
 
   + Your code should be clearly written and it should be possible to assess it by reading it. Use appropriate variable names and comments. Your style will be graded using the 
-  [style rubric]("./StyleRubric.html").
+  [style rubric](./StyleRubric.html).
 
   + All work for this probem set should be done using Stata. Do not do any data input/output or pre/post processing of results using tools other than Stata.
 

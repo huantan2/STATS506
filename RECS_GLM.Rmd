@@ -91,7 +91,8 @@ recs = recs %>% mutate(es_fridge = ifelse(ESFRIG < 0, NA, ESFRIG),
                        region = decode_region(REGIONC))
 ```
 
-Now we are ready to fit a logistic regression.
+Now we are ready to fit a logistic regression. Note that R will treat
+"region" as a factor since it is of class `r typeof(recs$region)`.
 
 ```{r}
 fit0 = glm(es_fridge ~ 0 + region + totsqft, data=recs,

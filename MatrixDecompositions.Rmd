@@ -1,0 +1,611 @@
+---
+title: "Matrix Decompositions"
+author: "Statistics 506, 2017"
+date: ""
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+
+## Cholesky Factorization
+
+The [Cholesky Decomposition](https://en.wikipedia.org/wiki/Cholesky_decomposition)
+of a symmetric, positive-definite, real-value matrix $\Sigma$ is the product
+of an upper-triangular matrix $R$ and its transpose $R'$ such that:
+
+$$
+\Sigma = R'R 
+$$
+In R we can compute the Cholesky decomposition using `chol`:
+
+```{r}
+## example covariance matrix
+sigma = c(1, .5, .2, .5, 1, .3, .2, .3, 1)
+dim(sigma) = c(3,3)
+sigma
+
+## Cholesky Decomposition
+R = chol(sigma)
+R
+
+## check that we get sigma back
+t(R) %*% R
+```
+
+### Correlation for Monte Carlo Studies
+The Cholesky decomposition can be used to transform draws from an iid Gaussian 
+distribution into draws from a multivariate normal distribution:
+
+```{r}
+# generate iid normal variates
+n = 1e5
+p = 3
+X = rnorm(n*p)
+dim(X) = c(n, p)
+
+# Correlations are approximately zero
+round(cor(X), 2)
+
+# Transform to multivariate normal
+M = X %*% R
+round(cor(M), 2)
+```
+
+### Obtaining regression coefficients
+
+The Cholesky decomposition can also be used to solve systems of linear equations,
+such as the [normal equations](https://en.wikipedia.org/wiki/Linear_least_squares_(mathematics)#Orthogonal_decomposition_methods)
+for a least squares regression:
+
+$$
+X'X \beta = X'Y.
+$$
+Using the Cholesky decomposition of $X'X = R'R$ the above equations can be solved
+very efficiently using forward- and backward-substituion due to the triangularity of
+$R'$ and $R$. We first solve for $z = R\beta$ using forward subsitution in:
+
+$$
+R'z = X'Y
+$$
+
+and then solve for $\beta$ using back substitution in:
+
+$$
+R\beta = z.
+$$
+
+Here's how this would look in R, along with a comparison of timing relative to
+`lm`.
+
+```{r}
+beta = 1:p; dim(beta) = c(p, 1)
+Y = M %*% beta + rnorm(n)
+
+## use lm to check
+tm_lm = system.time({
+  beta_lm = coef(lm(Y~M))
+})
+
+# add column for intercept
+X = cbind(1, M)
+
+tm_chol = system.time({
+ # Cholesky decomposition of X'X
+ R = chol(t(X) %*% X)
+
+ # forward subsitution
+ z = solve(t(R), t(X) %*% Y)
+ beta_chol = solve(R, z)
+})
+
+cbind('lm'=beta_lm, 'chol'=as.vector(beta_chol))
+rbind('qrXX' = tm_chol, 'chol'=tm_chol, 'lm'=tm_lm)
+```
+
+The Cholesky decomposition is very efficient to compute and allows for
+solving systems of linear equations such as result from least squares very
+quickly. However,
+it is somwhat less numerically stable and can lead to compounding error when used with 
+[ill-conditioned](https://en.wikipedia.org/wiki/Condition_number) matrices
+which can result from multicollinearity in regression models. 
+
+## QR Decomposition
+
+The [QR decomposition](https://en.wikipedia.org/wiki/QR_decomposition) of a matrix
+$X$ is the product of an orthogonal matrix $Q$ and an upper triangular matrix $R$:
+
+$$
+X = QR, \qquad Q'Q = I.
+$$
+
+It is commonly used to solve the normal equations in linear least squares as it
+is numerically more stable than the Cholesky decomposition.  It is also reasonably
+efficient to compute.
+
+In R we can compute the QR decomposition of a matrix using the `qr`:
+
+```{r}
+# compute the QR decomposition
+QR = qr(X)
+
+# access Q and R
+Q = qr.Q(QR)
+R = qr.R(QR)
+dim(qr.Q(QR))
+dim(R)
+
+# R is upper triangular
+R
+
+# Q is orthogonal
+t(Q) %*% Q
+```
+
+There are two ways to solve the normal equations using a QR decomposition using
+either 1) $X = QR$ or 2) $X'X = QR$.  Let's do the first:
+
+$$
+\begin{align}
+X'X\beta &= X'Y \\
+R'Q'QR\beta & = R'Q'Y \\
+R'R\beta & = R'Q'Y\\
+R\beta &= Q'Y.
+\end{align}
+$$
+Here is an implementation in R:
+```{r}
+tm_qrX = system.time({
+  QR = qr(X)
+  beta_qrX = solve(qr.R(QR), t(qr.Q(QR)) %*% Y)
+})
+cbind('lm'=beta_lm, 'qrX'=as.vector(beta_qrX))
+rbind('qrX' = tm_qrX, 'chol'=tm_chol, 'lm'=tm_lm)
+```
+
+Similarly, we could start with a QR decomposition of $X'X$.  In this case,
+$$
+\begin{align}
+X'X\beta &= X'Y \\
+QR\beta & = X'Y \\
+Q'QR\beta & = Q'X'Y\\
+R\beta &= Q'X'Y.
+\end{align}
+$$
+
+Here is the second method implemented in R:
+
+```{r}
+tm_qrXX = system.time({
+  QR = qr(t(X) %*% X)
+  beta_qrXX= solve(qr.R(QR), t(qr.Q(QR)) %*% t(X) %*% Y)
+})
+cbind('lm'=beta_lm, 'qrXX'=beta_qrXX)
+rbind('qrXX' = tm_qrXX, 'qrX' = tm_qrX, 'chol'=tm_chol, 'lm'=tm_lm)
+```
+
+The approach using the QR decomposition of $X'X$ is the one implemetned
+in the `lm.fit` function used by R.  Using the QR decomposition of $X$
+is not favored in practice as it is less numerically stable than 
+other approaches including the Cholesky decomposition.  
+
+
+
+## Singular Value Decomposition
+The [singular value decomposition](https://en.wikipedia.org/wiki/Singular-value_decomposition) 
+or SVD is a generalized version of the eigen decomposition discussed below. The SVD
+breaks a matrix $X$ into three parts - two orthonormal matrices $U$ and $V$ and
+a diagonal matrix $D$:
+
+$$
+X = UDV'
+$$
+By covention $U$, $D$, and $V$ are ordered so that the diagonal of $D$
+is largest in the upper left and smallest in the lower right.  The values of
+$D$ are called _singular values_, the columns of $U$ are called _left singular vectors_
+and the columns of $V$ _right singular vectors_. 
+
+In R, we can compute the SVD using the`svd` function:
+
+```{r}
+M.svd = svd(M)
+names(M.svd)
+M.svd$d
+dim(M.svd$u)
+dim(M.svd$v)
+```
+
+### SVD in Least Squares
+
+Like the previous decompositions, the SVD can be used to solve the least squares
+normal equations.  The SVD approach is most numerically stable in the presence
+of multicollinearity.  Here is the math using the SVD of $X$:
+
+$$
+\begin{align}
+X'X\beta &= X'Y \\
+(VD'U')UDV' \beta &= VD'U'Y \\
+D'V'\beta &= U'Y \\
+\beta &= VD^{-1}U'Y
+\end{align}
+$$
+And here is an implementation in R:
+```{r}
+tm_svd = system.time({
+ X.svd = svd(X)
+ beta_svd = with(X.svd, 
+ v %*% diag(1/d) %*% t(u) %*% Y
+                 )
+})
+
+
+cbind('lm'=beta_lm, 'svd'=as.vector(beta_svd))
+rbind('svd' = tm_svd, 'qrXX' = tm_qrXX, 'qrX' = tm_qrX, 'chol'=tm_chol, 'lm'=tm_lm)
+```
+
+## Comparing Least Squares Methods
+
+Let's do a quick comparison to illustrate the relative speed 
+of the various means for solving the normal equations $X'X\beta = X'Y$.
+
+First, we write functions to obtain $\beta$ from $X$ and $Y$ using each method
+above.
+```{r}
+## Functions
+b_chol <- function(X, Y){
+R = chol(t(X) %*% X)
+ z = solve(t(R), t(X) %*% Y)
+ solve(R, z)
+}
+
+b_qrXX <- function(X, Y){
+ QR = qr(X)
+ solve(qr.R(QR), t(qr.Q(QR)) %*% Y)
+}
+
+b_qrX <- function(X, Y){
+  QR = qr(t(X) %*% X)
+  solve(qr.R(QR), t(qr.Q(QR)) %*% t(X) %*% Y)
+}
+
+b_svd <- function(X, Y){
+ with(svd(X), 
+    v %*% diag(1/d) %*% t(u) %*% Y
+     )
+}
+```
+
+
+Next, we use the `microbenchmark` to compare the computations for a particular
+set of $X$ and $Y$:
+
+```{r}
+library(microbenchmark)
+n = 1e3
+p = 25
+X = rnorm(n*p); dim(X) = c(n, p)
+Y = rnorm(n)
+
+mb = microbenchmark(
+  b_chol(X, Y),
+  b_qrX(X, Y),
+  b_qrXX(X, Y),
+  b_svd(X, Y)
+)
+print(mb, digits=3, order='median' )
+ggplot2::autoplot(mb)
+dim(mb)
+```
+
+Next we compare these methods in terms of their numerical stability by 
+sampling ill-conditioned matrices $X$. We will do this by 
+
+```{r}
+sim_data = function(n, p, rho){
+  
+  # Compute Chol of Correlation Matrix
+  sigma = matrix(rho, p, p)
+  diag(sigma) = 1
+  R = chol(sigma)
+  
+  # Compute data
+  X = rnorm(n*p); dim(X) = c(n, p)
+  X = X %*% R
+  Y = X + rnorm(n)
+  cn = with(svd(X), d[1]/d[p])
+  list(X=X,Y=Y,cn=cn)
+}
+
+sim_beta = function(n, p, R){
+ handle_fail = function(error) rep(NA, p)
+ with(sim_data(n, p, R),
+   tibble(
+     chol = mean( { tryCatch(b_chol(X=X, Y=Y), error=handle_fail) -1 }^2),
+     qrX  = mean( { tryCatch(b_qrX(X=X, Y=Y), error=handle_fail) - 1 }^2),
+     qrXX = mean( { tryCatch(b_qrXX(X=X, Y), error=handle_fail) - 1 }^2),
+     svd  = mean( { tryCatch(b_svd(X, Y), error=handle_fail) -  1 }^2),
+     cn   = cn 
+     ) 
+ )
+}
+```
+
+Now we can fun `sim_beta()` many times in parallel.
+```{r, message=FALSE}
+## Load libraries
+library(doParallel)
+library(doRNG)
+library(dplyr)
+
+## parameters
+n = 1e2
+p = 99
+rho = .9999
+
+## Establish Cluster
+cl = makeCluster(3)
+registerDoParallel(cl)
+
+## reproducible parallel results
+set.seed(9)
+results = 
+  foreach(i=1:1e3, .packages=c('dplyr'), .combine='bind_rows') %dorng% 
+  {
+    sim_beta(n, p, rho)
+  }
+stopCluster(cl)
+```
+
+And then summarize the result:
+```{r}
+results %>% 
+  summarize(chol_fail = sum(is.na(chol)),
+            qrX_fail  = sum(is.na(qrX)),
+            qrXX_fail = sum(is.na(qrXX)),
+            svd_fail  = sum(is.na(svd)),
+            chol_var  = mean(chol, na.rm=T),
+            qrX_var   = mean(qrX, na.rm=T),
+            qrXX_var  = mean(qrXX, na.rm=T),
+            svd_var   = mean(svd, na.rm=T),
+            cn = mean(cn, na.rm=T)
+            ) %>% 
+  mutate(chol_var = chol_var / svd_var,
+         qrX_var  = qrX_var / svd_var,
+         qrXX_var = qrXX_var / svd_var,
+         svd_var  = svd_var / svd_var
+         )
+```
+
+## Eigen Decomposition
+
+The spectral or [eigen decomposition](https://en.wikipedia.org/wiki/Eigendecomposition_of_a_matrix) 
+of a real-valued, symmetric positive definite matrix $\Sigma$ consists of an orthogonal
+matrix of _eigenvectors_ $\Gamma$ and a diagonal matrix of _eigenvalues_ $\Lambda$ such
+that:
+
+$$
+\Sigma = \Gamma \Lambda \Gamma'.
+$$
+The eigen decomposition
+of $X'X$ and the SVD of $X$ are closely related.  Suppose $X = UDV'$, then
+
+$$
+X'X = VDU'UDV' = VD^2V'.
+$$
+
+In R, you can compute an eigen decomposition using `eigen`:
+
+```{r}
+## Generate some data
+n = 100; p = 4
+X = rnorm(n*p); dim(X) = c(n, p)
+XX = t(X) %*% X
+
+## Compute the Eigen decomposition
+XX.eigen = eigen(XX)
+XX.eigen
+round(with(XX.eigen, t(vectors) %*% vectors), 8)
+```
+
+Eigen decompositions have many uses which we will not cover here.  Two prominent
+uses within statistcs are in
+[dimensionality reduction](https://en.wikipedia.org/wiki/Dimensionality_reduction) - 
+[principal components analysis](https://en.wikipedia.org/wiki/Principal_component_analysis)
+(PCA) and 
+[multidimensional scaling](https://en.wikipedia.org/wiki/Multidimensional_scaling) 
+(MDS).
+
+## Multidimensional Scaling
+
+MDS is a technique for converting a matrix of pairwise dissimilarities into a
+low-dimensional map that preserves the distances as well as possible. 
+
+The first step in any MDS is choosing a (dis)similarity measure.  
+Often this will be a metric or distance, i.e.:
+    - Euclidean Distance for continuous variables
+    - Manhattan distance or Jacaard dissimilarity for binary variables
+
+Similarity measures can become dissimilarity measures by inverting
+$x \to 1/x$ or subtracting from 1 $x \to 1-x$.
+
+### Mathematical Details
+Consider a matrix of dissimilarities $D = \{d_{ij}\}_{i,j}$
+metric MDS finds new coordinates $X = \{(x_{i1}, x_{i2})\}_i$ that minimize the "stress" or "strain",
+$$
+\sum_{i,j} [d_{ij} - ||x_i - x_j||^2]^{1/2}.
+$$
+
+The steps to perform a classical MDS are:
+  - Obtain a matrix of squared pairwise dissimilarities
+  - Double center this matrix by subtracting the row/column mean
+      from each row/column
+  - Compute the eigen decomposition of the double-centered dissimilarities
+
+### MDS Example 1 | Distances between US cities
+
+The table below shows distances, in miles, between several major US cities.
+```{r, US-Cities-Data}
+data(UScitiesD) #Internal R data
+UScitiesMDS <- cmdscale(UScitiesD)
+mat <- as.matrix(UScitiesD)
+colnames(mat) <- c('Atl','Chi','Den','Hou','LA','Mia','NY','SF','Sea','DC')
+
+# Use Knitr to produce a nicer table.
+knitr::kable(mat, format='html')  %>%
+  kableExtra::kable_styling(bootstrap_options=c('striped','bordered'),font_size=18)
+```
+
+#### MDS coordinates
+We can use MDS to obtain a 2-dimensional map preserving distances as well as possible.
+
+```{r}
+plot(UScitiesMDS, pch='', xlab='Coord1', ylab='Coord2',
+     xlim=-c(-1750,1250), bg='grey')
+text(UScitiesMDS, attr(UScitiesD, 'Labels'))
+```
+
+For interpretation, it can be helpful to change the sign on the axes.
+
+```{r}
+UScitiesMDS <- -1*UScitiesMDS
+plot(UScitiesMDS, pch='', xlab='Coord1', ylab='Coord2', xlim=c(-1750,1250))
+text(UScitiesMDS, attr(UScitiesD, 'Labels'))
+```
+
+You can also aid in interpretation by assigning a name to each axis using
+subject matter knowledge. I also recommend removing the scales as only
+relative distances between points are meaningful.
+
+```{r}
+plot(UScitiesMDS, pch='', xlab='<<< West    East >>>', 
+     ylab='<<< South    North >>>', xaxt='n', yaxt='n', xlim=c(-1750,1250))
+text(UScitiesMDS, attr(UScitiesD,'Labels'))
+```
+
+### MDS Example 2 | Shortstop Defense
+
+As a second example we will compare the defensive value of MLB shortstops from 2016.
+We will use a collection of "advanced" defensive metrics from 
+[fangraphs.com](http://www.fangraphs.com/leaders.aspx?pos=ss&stats=bat&lg=all&qual=y&type=8&season=2016&month=0&season1=2016&ind=0&team=0&rost=0&age=0&filter=&players=0) as our starting data.
+
+We'll start by importing and cleaning the data.
+
+```{r, ShortStopData}
+## Read in Data ##
+# Data from www.fangraps.com #
+df = read.csv('./SS_Def_2016.csv', stringsAsFactors = FALSE)
+
+# save composite variables #
+defMain <- df[, c('Inn','DRS','UZR','Def')]
+
+# remove unwanted variables #
+df[,c('Team','Pos','Inn','rSB','rARM','BIZ','Plays','FSR','UZR.150',
+      'OOZ','RZR','playerid','CPP','RPP','TZL','ARM')] <- NULL
+
+# df2 also removes composites
+df2 <- df
+df2[, c('DRS','UZR','Def')] <- NULL
+
+# convert to a matrix to please cmdscale #
+defenseMat <- as.matrix(df[,-1])
+rownames(defenseMat) <- df$Name
+
+# metrics have different scales, so convert to z-scores #
+zScore <- function(x) {x-mean(x)}/sd(x)
+defenseZ <- apply(defenseMat, 2, zScore)
+
+head(defenseMat)
+```
+
+All of these metrics are in units of 'runs', 
+but have varying scales so we will work with z-scores.
+
+Here is a heat map of the transformed values:
+
+```{r, SS-Heatmap}
+## heatmap ##
+cols <- colorRampPalette(c('blue','white','red'))(999)
+gplots::heatmap.2(defenseZ, col=cols, trace='none', sepcolor='grey', cexRow=.5)
+```
+
+Our first step in MDS is computing the (Euclidean) distances
+between pairs of players using the z-scores:
+
+```{r, SS-Distances}
+## compute pairwise distances ##
+defenseDist <- as.matrix(dist(defenseZ, diag=T, upper=T))
+cols2 <- colorRampPalette(c('white','red'))(999)
+gplots::heatmap.2(defenseDist, col=cols2, trace='none',
+          sepcolor='grey', cexRow=.5, cexCol=.5, scale='none',
+          symm=TRUE, dendrogram='none')
+```
+
+Given the distances, an MDS algorithm returns a set of coordinates which can be plotted.
+```{r,SS-Plot1}
+## compute MDS results ##
+defMDS2 <- -1*cmdscale(defenseDist, 2)
+
+## convert to data frames ##
+dfMDS2 <- 
+  cbind(
+   data.frame(Player=df$Name,
+             Coord1=defMDS2[,1],
+             Coord2=defMDS2[,2]
+             ), 
+   df
+  )
+
+# Correlation of Coord1 with original variables #
+#cor(dfMDS2$Coord1,defenseZ)
+p1 <- ggplot(dfMDS2,aes(x=Coord1,y=Coord2,Name=Player)) +
+  geom_point(aes(col=Def))
+
+# We can make the plot interactive using 
+# the plotly library
+plotly::ggplotly(p1)
+```
+
+As before, it is generally helpful to use subject
+matter knowledge to create names or concepts for each coordinate.
+Below we look at the correlation of the first coordinate with each of 
+the original variables. 
+
+```{r, SS-Coord1}
+r1 <- cor(dfMDS2$Coord1, defenseZ)
+o <- order(r1)
+r1ord <- r1[o]; names(r1ord) <- colnames(r1)[o]
+barplot(r1ord, las=1, ylab='Correlation', main='Coordinate 1')
+```
+
+In this case, the first coordinate tracks overall defensive
+value which is closely tied to scores based on range.
+The second coordinate tracks other aspects of value,
+primarily value from turning double plays.
+
+```{r, SS-Coordinate2}
+r2 <- cor(dfMDS2$Coord2, defenseZ)
+o <- order(r2)
+r2ord <- r2[o]; names(r2ord) <- colnames(r2)[o]
+barplot(r2ord, las=1, ylab='Correlation', main='Coordinate 2')
+```
+
+Plot aspects such as color, symbol,
+and marker size can be used with the new coordinate system to help tell a coherent story.
+```{r, SS-MDS-Plot2}
+# Here, we use marker size for total defensive value
+# and color for one measure of value from double plays.
+p3 <- ggplot(dfMDS2, aes(x=Coord1, y=Coord2, Name=Player)) +
+  geom_point(aes(col=DPR,size=Def)) +
+  xlab('Overall Defense / Range') + 
+  ylab('Doulbe Play Value') +
+  ggtitle('MLB Shortstops, 2016.')
+plotly::ggplotly(p3)
+```
+

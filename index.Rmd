@@ -44,5 +44,9 @@ output:
 
   <a href="./OOP_R.html">Object Oriented Programming in R</a>
 
+  <a href="./GLM_Methods.html">S3 in action: GLM Methods</a>
+
+  <a href="./MatrixDecompositions.html">Matrix Decompositions</a>
+
   </div>
 </div>
