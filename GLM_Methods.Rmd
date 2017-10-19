@@ -169,7 +169,7 @@ recs_regions_atmean %>%
 
 What if we wanted to examine the effect of `totsqft` averaged over regions? 
 
-```{r, echo=FALSE}
+```{r p_regions}
 # Compute proportions of homes in each region
 df_regions =
   recs %>% 
@@ -181,12 +181,15 @@ df_regions =
          NE=NE/Total,
          S =S/Total,
          W =W/Total
-         ) %>%
-  gather(region,prop, MW:W)
+  ) %>%
+  gather(region, prop, MW:W)
 
 p_regions = df_regions$prop
 names(p_regions) = df_regions$region
+p_regions
+```
 
+```{r apm_totsqft}
 # Compute linear predictors
 at_totsqft = c(10, 20, 30)
 lp_avg_region = sum(coef(fit0)[-5] * p_regions)
@@ -212,11 +215,18 @@ ap_totsqft %>% mutate(adj_pred = pred)
 ```
 
 In the above example, we computed predictions for each observation in the data set 
-adjusted for fixed values of `totsqft` and averaged the _linear predictors_ *before*
+adjusted for fixed values of `totsqft` and averaged the _linear predictors_ 
+**before**
 transforming to the probability scale using the link function.  These
 are examples of _adjusted predictions at the means_.
 
 ##### Average Adjusted Predictions
+
+An alternative to adjusted predictions at the means are _average
+adjusted predictions_ computed by averaging adjusted predictions for
+each observation in the data set. In the example below, we average **after**
+forming adjusted predictions on the probability scale, i.e the scale of the response.
+In this case the results are rather similar.
 
 ```{r}
 new_data = recs %>% select(region, totsqft)
@@ -238,26 +248,62 @@ fit1 = glm(es_fridge ~ 0 + region*totsqft,
 summary(fit1)
 ```
 
-When computing adjusted predictions at specfic values of `totsqft` it would not
+When computing adjusted predictions at specific values of `totsqft` it would not
 make sense to average over the interaction terms which also involve `totsqft`.
-Instead, we should ensure that `totsqft` enters the model as expected for all terms.
+Instead, we should ensure that `totsqft` enters the model as expected for all 
+terms involving it. Using `predict` will take care of this for us.
 
 ```{r}
 p10 = predict(fit1, new_data %>% mutate(totsqft=10), type='response')
 p20 = predict(fit1, new_data %>% mutate(totsqft=20), type='response')
 p30 = predict(fit1, new_data %>% mutate(totsqft=30), type='response')
-ap_totsqft %>% mutate(avg_response = sapply(list(p10, p20, p30), mean))
+ap_totsqft = ap_totsqft %>% mutate(avg_response = sapply(list(p10, p20, p30), mean))
+ap_totsqft
 ```
 
+We could also do this directly.
+
+```{r}
+# model coefficients
+beta_hat = matrix(coef(fit1), ncol=1)
+
+# Data matrices for each level of totsqft
+X10 = recs %>%
+  transmute(
+    MW = 1*{region=='MW'},
+    NE = 1*{region=='NE'},
+    S  = 1*{region=='S'},
+    W  = 1*{region=='W'},
+    tot = 10,
+    tot_NE = tot*NE,
+    tot_S  = tot*S,
+    tot_W  = tot*W
+  )
+X10 = as.matrix(X10)
+X20 = cbind(X10[,1:4], 2*X10[,5:8])
+X30 = cbind(X10[,1:4], 3*X10[,5:8])
+
+# inverse link
+inv_logit = function(x) exp(x) / {1+exp(x)}
+
+# average adjusted predictions
+ap_totsqft %>% 
+  mutate(
+   by_hand = c( mean(inv_logit(X10 %*% beta_hat)), 
+                mean(inv_logit(X20 %*% beta_hat)),
+                mean(inv_logit(X30 %*% beta_hat))
+              )
+  )
+```
 
 ##### The `prediction` package
 
 The [prediction](https://github.com/leeper/prediction/) package provides
 an S3 generic `prediction` and methods for computing
-predictive margins from various classes representing fitted models, but is "typesafe" in that it 
+predictive margins from various classes representing fitted models. It is "type safe" in that it 
 always returns an object of class `prediction` which 
 is essentially a copy of the original data frame with the requested
-fitted values plus a few addtional attributes.  
+fitted values plus a few additional attributes.  
 
 Below we use `prediction::prediction` to compute adjusted predictions at the mean
 for our `fit0` object.
@@ -273,8 +319,8 @@ Because we requested predictions at three values of `totsqft` our data frame
 is three time as large. 
 
 ```{r}
-cat('dim(lp_fit0):', dim(lp_fit0), '\n', 'dim(recs):', dim(recs),'\n',
-    'nrow(lp_fit0)/nrow(recs):', nrow(lp_fit0)/nrow(recs), '\n')
+cat(' dim(lp_fit0): ', dim(lp_fit0), '\n', 'dim(recs): ', dim(recs),'\n',
+    'nrow(lp_fit0)/nrow(recs): ', nrow(lp_fit0)/nrow(recs), '\n')
 ```
 
 You should keep this in mind if working with large data sets as this could 
@@ -293,8 +339,10 @@ limited to necessary variables.
 
 ```{r}
 recs_glm = recs %>% select(es_fridge, region, totsqft)
-fit0 = glm(es_fridge~0+region+totsqft, family=binomial(link='logit'),
-           data=recs_glm)
+fit0 = glm(es_fridge~0+region+totsqft, family=binomial(link='logit'), data=recs_glm)
+fit1 = glm(es_fridge~0+region*totsqft, family=binomial(link='logit'), data=recs_glm)
+
+print(object.size(recs_glm), units='Mb')
 print(object.size(recs_glm), units='Mb')
 print(object.size(fit0), units='Mb')
 ```
@@ -318,7 +366,7 @@ line above?_
  some variables at representative values and setting others to the mean value.
 
   + _Average adjusted predictions_ are computed adjusted predictions for each
-  observation in the data leaving unadjusted values unchanged and then averaging the
+  observation in the data leaving other values unchanged and then averaging the
   resulting predictions.
  
   + In a linear model these are the same. 
@@ -346,8 +394,6 @@ _adjusted predctions at the mean_.  Below are some examples.
 First, we examine simple differences of adjusted predictions at the mean
 for different regions.
 ```{r mem_region}
-## MEM for regions
-
 # New data for prediction
 new_data = 
   tibble(region  = unique(recs_glm$region),
@@ -370,7 +416,7 @@ new_data %>% spread(region, fitted) %>%
 
 Next, we compute marginal effects at the mean for `totsqft`.
 ```{r mem_totsqft}
-## MEM for totsqft quantiles
+# MEM for totsqft quantiles
 q_tot = quantile(recs_glm$totsqft, c(.25, .75))
 
 # Adjusted Predictions at "mean" region
@@ -380,17 +426,25 @@ lp_fit0 = c(sum(coef(fit0)*c(p_regions, q_tot[1])),
 apm = exp(lp_fit0) / {1 + exp(lp_fit0)}    
 apm
 
-## Marginal Effect
+# Marginal Effect
 diff(apm)
 ```
 
-In other words, for an "average" region a house at the upper quartile
+From the above, for an "average" region a house at the upper quartile
 (~`r round(q_tot[2])*1e2` sq ft) is `r round(diff(apm)*100)`% more likely to have
 an Energy Star compliant refrigerator than a house at the lower quartile 
 (~`r round(q_tot[1])*1e2` sq ft).
 
+##### Average Marginal Effects
+
+Similarly, _average marignal effects_ (AME) are differences between
+average adjusted predictions. 
+
+Below we first compute predictions for each region at the chosen
+levels of `totsqft`
+
 ```{r ame_totsqft}
-## AME for totsqft quantiles
+# AME for totsqft qu0antiles
 q_tot = quantile(recs_glm$totsqft, c(.25, .75))
 
 # New data for prediction
@@ -407,14 +461,28 @@ new_data = new_data %>% mutate(fitted = predict(fit0, new_data, type='response')
 new_data
 ```
 
+Now, we can compute a weighted average of the marginal effects.
 
+```{r}
+aap = new_data %>% group_by(totsqft) %>% summarize(ame = sum(w_regions*fitted))
+with(aap, ame[2] - ame[1])
+```
 
-##### Average Marginal Effects
+This could also be done using `predict`.
+
+```{r}
+aap_upr = 
+  mean(predict(fit0, recs_glm %>% mutate(totsqft = q_tot[2]), type='response'))
+aap_lwr =
+  mean(predict(fit0, recs_glm %>% mutate(totsqft = q_tot[1]), type='response'))
+c('Lower Q'=aap_lwr, 'Upper Q'=aap_upr, 'AME' = aap_upr - aap_lwr)
+```
+
 
 ##### The `margins` package
 
 The author of the `prediction` package also has a [margins package](https://github.com/leeper/margins/)
-meant to mimic the behaviour of Stata's `margins` command. As you might expect, it
+meant to mimic the behavior of Stata's `margins` command. As you might expect, it
 is built on the `prediction` package meaning that functions in `margins` call functions in
 `prediction` for computing adjusted predictions.  
 
@@ -425,13 +493,28 @@ mem0
 plot(mem0)
 ```
 
-What happens when we call margins?
+What happens when we call margins? Below is a _call graph_ for
+functions in the `margins` package.
 ```{r}
-#mvbutils::foodweb(where=asNamespace("margins"), rprune="margins")
+mvbutils::foodweb(where=asNamespace("margins"))
 ```
 
+##### Computing marginal effects
+
+We can call margins directly using the "change" parameter to specify
+we want continuous variables summarized using differences between adjusted
+predictions at the upper and lower quartiles.
+
+```{r}
+margins(fit0, change='iqr')
+```
+
+
 For factor variables, "dydx" is the first difference between the predicted
-response at a particular level of the factor and the predicted response at the baseline level.
+response at a particular level of the factor and the predicted response at the
+baseline level. For numeric variables, the default behavior is to use a numeric
+derivative at the observed value for each observation.  Below we investigate
+this for our earlier call creating the margins data frame `mem0`.
 
 ```{r}
 dydx_W = 
@@ -447,30 +530,8 @@ mean(dydx_W)
 mem0
 ```
 
-What about the variances?
-
-```{r}
-Var_dydx_W = 
-  predict(fit0, recs_glm %>% mutate(region='W'), type='response', se.fit=T)$se.fit^2 + 
-  predict(fit0, recs_glm %>% mutate(region='MW'), type='response', se.fit=T)$se.fit^2
-
-
-
-matrix(c(-1, 0, 0, 1, 0), nrow=1) %*% vcov(fit0) %*% matrix(c(-1, 0, 0, 1, 0), ncol=1) 
-
-head(cbind(Var_dydx_W, Var_dydx_regionW = mem0$Var_dydx_regionW))
-```
-
-
-
-We can understand the effect of size by contrasting different values
-of `totsqft`.  
-
-```{r}
-mem0_iqr = margins(fit0, change='iqr')
-mem0_iqr
-```
-
+In the next code block, we look at the computation of the 'numeric' 
+derivatives for continuous variables like `totsqft`.
 
 ```{r}
 # Step size
@@ -492,10 +553,60 @@ dydx_totsqft =
     )
   } / {recs_glm$h}
 
-head(cbind(mem0$dydx_totsqft,dydx_totsqft, dydx(recs_glm,fit0,"totsqft")))
+dydx_compare = 
+  cbind("mem0"=mem0$dydx_totsqft, "dydx"=dydx(recs_glm, fit0, "totsqft"),
+           "hand"=dydx_totsqft)
+head(dydx_compare)
 ```
 
+The average marginal effect of `totsqft` is the average of these values.
 
+```{r}
+apply(dydx_compare, 2, mean)
+```
+
+```{r}
+mem0
+```
+
+We can also use "at" to select representative values at which
+we wish to see marginal effects.  Using our interaction model,
+we can summarize the marginal effect of region at different levels
+of `totsqft`.
+
+```{r}
+mem1 = margins(fit1, at=list(totsqft=q_tot))
+mem1
+```
+
+Here are some plots to help us visualize the interactions.
+
+```{r}
+mem1a = margins(fit1)
+mem1a %>%
+  ggplot(aes(x=totsqft, y=fitted, group=region, color=region)) +
+  geom_line()
+```
+
+```{r}
+mem1a %>%
+  ggplot(aes(x=totsqft, y=fitted, group=region, color=region)) +
+  geom_line() + 
+  geom_point(aes(y=es_fridge)) +
+  facet_wrap(~region)
+```
+
+##### Summary
+ 
+  + _Marginal effects at the mean_ represent differences
+  in adjusted predictions at the mean.
+
+  + _Average marginal effects_ represent differences in average
+  adjusted predictions. This is equivalent to the mean marginal effect computed from adjusted predictions for each observation in the data since averaging and
+  difference are linear operations.
+ 
+  + For continuous values we can computed marginal effects by difference
+  adjusted predictions at representative values or use derivatives in place of differences. 
 
 
 
