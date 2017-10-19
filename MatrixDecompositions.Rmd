@@ -556,8 +556,8 @@ defMDS2 <- -1*cmdscale(defenseDist, 2)
 dfMDS2 <- 
   cbind(
    data.frame(Player=df$Name,
-             Coord1=defMDS2[,1],
-             Coord2=defMDS2[,2]
+             Coord1=round(defMDS2[,1],2),
+             Coord2=round(defMDS2[,2],2)
              ), 
    df
   )
