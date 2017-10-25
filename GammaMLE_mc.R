@@ -10,7 +10,7 @@
 library(parallel)
 
 # default arguments
-arg_list = list(
+args_list = list(
   cores=1,
   mcrep=1e3,
   n=1e2,
@@ -24,11 +24,11 @@ args = commandArgs(trailingOnly = TRUE)
 # functions for finding named arguments
 args_to_list = function(args){
   ind = grep('=',args)  
-  arg_list = strsplit(args[ind],'=')
-  names(arg_list) = sapply(arg_list, function(x) x[1])
+  args_list = strsplit(args[ind],'=')
+  names(args_list) = sapply(args_list, function(x) x[1])
 
-  arg_list = lapply(arg_list, function(x) as.numeric(x[2]))
-  arg_list
+  args_list = lapply(args_list, function(x) as.numeric(x[2]))
+  args_list
 }
 
 # get named arguments
@@ -38,7 +38,7 @@ args_list_in = args_to_list(args)
 ignored = c()
 for(arg in names(args_list_in)){
  # Check for unknown argument
- if(is.null(arg_list[[arg]])){
+ if(is.null(args_list[[arg]])){
     ignored = c(ignored, arg)
  } else{
    # update if known
@@ -89,14 +89,14 @@ sim_mle_gamma = function(n, shape, rate){
 # Do the computations
 # Test MC loop
 results = 
-  with(arg_list,
+  with(args_list,
     mclapply(1:mcrep, function(i) sim_mle_gamma(n, shape, rate),
          mc.cores=cores)
   )
 
 
 est = do.call(dplyr::bind_rows, results)
-bias = with(arg_list, colMeans(est) - c(shape, rate))
+bias = with(args_list, colMeans(est) - c(shape, rate))
 varn = apply(est, 2, var)
 mse  = bias^2 + varn
 # -----------------------------------------------------------------------------
