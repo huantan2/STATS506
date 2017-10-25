@@ -89,14 +89,14 @@ sim_mle_gamma = function(n, shape, rate){
 # Do the computations
 # Test MC loop
 results = 
-  with(args_list,
+  with(arg_list,
     mclapply(1:mcrep, function(i) sim_mle_gamma(n, shape, rate),
          mc.cores=cores)
   )
 
 
 est = do.call(dplyr::bind_rows, results)
-bias = colMeans(est) - c(shape, rate)
+bias = with(arg_list, colMeans(est) - c(shape, rate))
 varn = apply(est, 2, var)
 mse  = bias^2 + varn
 # -----------------------------------------------------------------------------
