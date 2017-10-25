@@ -6,6 +6,9 @@
 ## Author: James Henderson (jbhender@umich.edu)
 ## Date: Oct 26, 2017
 
+# if needed
+#.libPaths('~/Rlib')
+
 # libraries
 library(parallel)
 
