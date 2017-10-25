@@ -98,7 +98,7 @@ results =
   )
 
 
-est = do.call(dplyr::bind_rows, results)
+est = do.call(rbind, results)
 bias = with(args_list, colMeans(est) - c(shape, rate))
 varn = apply(est, 2, var)
 mse  = bias^2 + varn
