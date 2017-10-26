@@ -106,11 +106,14 @@ mse  = bias^2 + varn
 
 # -----------------------------------------------------------------------------
 # Print messages about the results
-msg1 = sprintf('shape: bias = %4.3f, std dev = %4.3f, RMSE = %4.3f\n', 
+shape_msg = sprintf('shape: bias = %4.3f, std dev = %4.3f, RMSE = %4.3f\n', 
               bias['shape'], varn['shape'], mse['shape']
 )
-msg2 = sprintf(' rate: bias = %4.3f, std dev = %4.3f, RMSE = %4.3f\n', 
+rate_msg = sprintf(' rate: bias = %4.3f, std dev = %4.3f, RMSE = %4.3f\n', 
                bias['rate'], varn['rate'], mse['rate']
 )
 
-cat(msg1,msg2,sep='')
+# Report results to stdout
+cat('arguments:',paste(names(arg_list),unlist(arg_list),sep='=',collapse=', '),'\n')
+cat(shape_msg, rate_msg, sep='')
+
