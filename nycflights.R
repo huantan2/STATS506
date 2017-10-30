@@ -56,3 +56,6 @@ compute_time = function(dep, arr){
         )
     ][,.(dep_time, arr_time,  minutes, delta={air_time - minutes}/60 )
     ]
+  
+nyc14
+
