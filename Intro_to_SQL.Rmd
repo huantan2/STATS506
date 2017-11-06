@@ -1,0 +1,51 @@
+---
+title: "SQL"
+author: "Statistics 506, Fall 2017"
+date: "11/5/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## SQL and Relational Databses
+
+
+## Tables, Servers, and Aliases
+
+
+## Search, subset, and limiting clauses
+
+```sql
+CREATE TABLE my_table AS 
+SELECT col1, col2, col3 
+  FROM some_other_table
+```
+
+### Where and Having
+
+ + IN
+ 
+ + LIKE
+ 
+ + REGEXLIKE
+
+### Group By 
+
+ 
+## Joins
+
+### Inner Joing
+
+### Left Outer Join
+
+### Right Outer Join
+
+### Full Outer Join
+
+### Anti Join
+
+## Aggregation
+
+### DISTINC
