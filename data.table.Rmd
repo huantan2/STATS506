@@ -1,0 +1,210 @@
+---
+title: "R’s `data.table` package"
+author: "Statistics 506, 2017"
+date: ""
+output: 
+  html_document:
+      theme: journal
+      highlight: pygments
+      css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+[Stats 506 Homepage](./index.html)
+
+## About `data.table`
+
+The `data.table` package in R provides an extension of the`data.frame` class that
+aims to be both more computationally and memory efficient.  It is paricularly well suited
+for large in-memory data sets and utilizes _indexed keys_ to allow quick search, subset,
+and aggregrate by group operations.  
+
+
+## Creating _data.table_ objects
+
+The `data.table` package provides a function `fread` for reading delimited files
+like `read.table` and `readr::read_delim`, but returns a _data.table_ object instead.
+As with the _tibble_ class, _data.table_ inherits from _data.frame_.  Here is an example
+using the 2014 New York City Flights data.
+
+```{r}
+library(data.table)
+nyc14 = fread('https://github.com/arunsrinivasan/flights/wiki/NYCflights14/flights14.csv')
+class(nyc14)
+```
+
+You can also create a _data.table_ like a _data.frame_ using:
+
+```{r}
+n = 1e3
+data.table(a = 1:n, b=rnorm(n), c=sample(letters, n, replace=TRUE))
+```
+
+_Question: How can we view the *print* method for class *data.table*?_
+
+## "Indexing"
+
+The syntax for the `data.tables` package is inspired by the bracket (`[]`) notation
+for indexing matrices and data frames. At the same time, it aims to allow many common data
+operations (i.e. `dplyr` verbs) to be expressed within these brackets. 
+These goals are expressed at the start of the "Introduction to data.table"
+[vignettte](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-intro.html).
+
+The basic idea is `DT[i, j, by]` where we:
+  +  subset or filter rows in the `i` statement, 
+  +  select, transform, or create columns (variables) in the `j` statement
+  +  and group with the `by` statement.  
+  
+Additional operations can also be expressed within the brackets.  Rememer that,
+even for a _data.frame_ or _matrix_ the left bracket `[` is actually a **function**:
+
+```{r}
+`[`
+```
+
+Below are some examples on the `nyc14` _data.table_ created using `fread()` above:
+
+```{r}
+nyc14
+```
+
+
+### Subsetting
+
+Find all flights from LGA to DTW:
+
+```{r}
+lga_dtw = nyc14[origin == 'LGA' & dest == 'DTW',]
+```
+
+Get the first and last rows of `lga_dtw`:
+
+```{r}
+lga_dtw[c(1,.N)]
+```
+
+In the above, we used `.N` to index the last row.  This is a special symbol defined
+by `data.table` to hold the number of rows or observations in the "current" group.
+"Current" here refers to the scope in which it is used.
+
+Also, notice the difference from standard _data.frame_ or matrix subsetting:
+
+```{r}
+# Indexing a matrix
+ld_mat = as.matrix(lga_dtw)
+ld_mat[c(1,nrow(ld_mat))]
+
+# Indexing a data.fame
+ld_df = as.data.frame(lga_dtw)
+dim(ld_df[1:2])  # What would happen if we called: ld_df[c(1,nrow(ld_df))] ?
+```
+
+You can also use the "i" clause to order a _data.table_:
+
+```{r}
+lga_dtw[order(-month,-day,dep_time)]
+```
+
+### Column Selection
+
+Get the departure and arrival times, flight number, and carrier for all flighs
+from LGA to DTW:
+
+```{r}
+nyc14[origin == 'LGA' & dest == 'DTW', list(dep_time, arr_time, carrier, flight)]
+```
+
+Notice the use of `list()` to select columns. A synonym for `list()` within
+`data.table` is  `.()` to save typing and enhance readability:
+
+```{r}
+nyc14[origin == 'LGA' & dest == 'DTW', .(dep_time, arr_time, carrier, flight)]
+```
+
+
+Columns can also be selected using
+a character vector of column names.
+```{r}
+nyc14[origin == 'LGA' & dest == 'DTW', c("dep_time", "arr_time", "carrier", "flight")]
+```
+
+### Computing with Columns
+
+The "j"-clause can be used to compute with column variables like "dplyr::summarize".
+Below, we find the upper and lower quintiles of departure delays for fligths between LGA and DTW
+during this period:
+
+```{r}
+lga_dtw[,.(p20=quantile(dep_delay,.2), p80=quantile(dep_delay,.8))]
+```
+
+The "j"-clause can also be used to compute with column variables much like "dplyr::transmute".
+Here, we create new columns indicating whether the arrival or departure delays were
+greater than 15 minutes:
+
+```{r}
+nyc14[,.(delay15 = 1*{dep_delay > 15 | arr_delay > 15})]
+```
+
+To get behvaior like "dplyr::mutate" we need [reference semantics](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html).
+
+First, using the special function "`:=()`" we can add the `delay15` above. 
+
+```{r}
+nyc14[,`:=`(delay15 = 1L*{dep_delay > 15 | arr_delay > 15})]
+nyc14
+```
+
+Pay close attention to the first line of the code above. Why didn't it print and
+why didn't we need an assignment? Also, what is the role of that "L"?f
+
+Another way to accomplish this is as below. Which do you find more intuitive?
+
+```{r}
+nyc14[,"delay30" := 1L*{dep_delay > 30 | arr_delay > 30}]
+nyc14
+```
+
+### by
+
+### `.SD`
+
+## Copies
+
+```{r}
+DT1 = data.table(A=5:1,B=letters[5:1])
+DT2 = DT1
+DT3 = copy(DT1)
+
+DT1[,C := 2*A] 
+DT1
+DT2 
+DT3
+```
+
+## keys
+
+## Reference Semantics
+
+[vignette](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html)
+
+## Resources 
+
+  + Professor Shedden's [Large data sets in R](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/r_large_files/)
+  
+  + The `data.table` [vignettes](https://cran.r-project.org/web/packages/data.table/) on CRAN
+  
+  + The project [homepage](https://github.com/Rdatatable/data.table/wiki)
+   for data.table
+  
+  + A short introduction from Dr. Clark's [workshop](https://m-clark.github.io/data-processing-and-visualization/08_datatable.html)
+  
+  + See "Large Memory and out-of-memory data" on CRAN's [HPC task view](https://cran.r-project.org/web/views/HighPerformanceComputing.html)
+  
+  + The [`dtplyr`](https://github.com/hadley/dtplyr) package provides `dplyr` methods for
+  `data.table` objects (objects of _class_ data.table). That is `dtplyr` is the
+  `data.table` _backend_ for `dplyr` -- the part facing away from the interactive user.

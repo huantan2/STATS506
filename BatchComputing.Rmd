@@ -1,0 +1,177 @@
+---
+title: "Batch Computing and Job Scheduling"
+author: "Statistics 506, 2017"
+date: ""
+output: 
+  html_document:
+      theme: journal
+      highlight: pygments
+      css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Batch Computing
+
+The term [batch processing](https://en.wikipedia.org/wiki/Batch_processing) refers
+to running a computer program non interactively.  That is, rather than a prompt
+i.e. ">" that waits for user supplied commands, a series of commands in a script is
+executed according to the script logic without further input from the user.
+
+When you `knit` your R markdown files, you are in essence running R markdown in "batch mode"
+as the Rmd file is executed without additional instructions from you. 
+We [previously](https://jbhender.github.io/Stats506/Short_Introduction_to_Stata.html) saw an example of how to run Stata scripts (`.do`) in batch mode:
+
+```stata
+stata -b my_script.do
+```
+
+
+### `R CMD BATCH`
+
+On Unix-alike machines, an R script `my_script.R` can be run in batch mode from the command line using:
+
+```bash
+R CMD BATCH my_script.R 
+```
+
+The script `my_script.R` is known as the _infile_.  An _outfile_ `my_script.Rout` will
+be created in the working directory with the output from stdout and stderr that would
+usually appear at the Console.  You can specify an explicit name for the outfile as 
+in the example below:
+
+```bash
+R CMD BATCH my_script.R ./output/results_my_script.Rout
+```
+
+In the example, we wrote the R output to a folder `/output`. Examining the outfile,
+we see the start up message from R, the commands run and their results, and 
+a final call to `proc.time()` letting us know how long the script took to run.
+
+We can use _options_ to control how R is run and what gets printed.  This [page](https://github.com/gastonstat/tutorial-R-noninteractive/blob/master/02-batch-mode.Rmd) 
+describes some of the relevant options. Below are some examples:
+
+I would recommend always passing `--vanilla` to make your scripts reproducible 
+and to avoid saving objects inadvertently.  A general principle of reproducibility is that
+results should not depend on local files not explicitly called in the script.
+
+### `Rscript`
+
+The `Rscript` command is similar to `R CMD BATCH` except:
+
+  + default options are `--slave` and `--no-restore` implying `--no-save`, 
+  + output is written to stdout rather rather than an outfile,
+  + you can pass an expression using `-e ` rather than a file.
+  
+Here are a few examples:
+
+
+### Command Line Arguments
+
+When running in batch mode it is sometimes useful to run the same script 
+multiple times with a small number of changes to key parameters.  While it is
+often simpler to run a single script using a `for` loop (or in parallel via `foreach`),
+for long running or otherwise intensive jobs it is often convenient to run each job
+separately. In such instances, passing parameters at the command line and 
+accessing them within an R script using `commandArgs()` is a useful construct.
+
+See also `help(commandArgs)`.
+
+We will look at a minimal example by running `my_script2.R` at the command line
+using
+
+```r
+Rscript my_script2.R --args 2 3 4
+```
+
+
+## Job Scheduling & the Flux Cluster
+
+We will review the information at this [page](http://arc-ts.umich.edu/flux-user-guide/).
+If you have not enrolled in DUO two-factor authentication please do so.
+If you do not yet have a flux user account, please request one using the link
+from the page above.
+
+If you have a flux user account, you can connect to the login nodes from a campus
+IP address via:
+
+```r
+ssh flux-login.arc-ts.umich.edu
+```
+
+Just as when connecting to the scs servers via `scs.dsc.umich.edu`, you will be
+connected to a specific login node.  If you use `tmux` to start an editing session
+remember the specific node you need to reconnect to.
+
+In many ways the linux environment on the login nodes is similar to that one the
+stats servers.  However, there are some important differences:
+
+  + These nodes are not designed for long-running or high memory (>8GB) computing jobs,
+  + Statistical software like R is not loaded by default, but must be requested as _modules_,
+  + The default directory is not your `afs` space, but a separate directory known as `home`.
+
+You can access your afs space over the network from the login nodes, but the compute 
+nodes are not able to access network files.
+
+### Software Modules
+
+On Flux, software aside from the linux operating environment and associated tools
+must be explicitly requested using the `module` command.  Type `module --help` from
+a login node to learn more.  We will look at the following `module` sub-commands:
+
+  + `list` for viewing currently loaded modules
+  + `load` / `unload` for loading and unloading modules
+  + `spider` for searching for available modules.
+  
+
+### Flux allocations
+
+In order to submit jobs for computing on the Flux cluster, you must belong to a
+_flux allocation_.  You can think of a flux allocation as a pool of resources
+available to and shared among a group of folks. Statistics students have access
+to an allocation paid for by the Stats department, there are also shared allocations
+for Engineerring and LSA.  
+
+You can see which flux allocations you have access to using the `mdiag` command:
+
+```bash
+mdiag -u uniqname
+```
+
+After you have a user account, please login and use the command above to check your allocations.
+If you do not have an allocation, please send me an email.
+
+### Job Submission
+
+To run computations in batch mode on the Flux cluster, you must specify both the
+resources your compute job requires and the code to be run.  This is done using
+a file known as a "PBS script" which is essentially a modified shell script with
+special comments `#PBS` for communicating with the scheduling system.
+
+For more on PBS scripts, see item 7 from the [flux user guide](http://arc-ts.umich.edu/flux-user-guide/).
+
+Once you have a valid PBS script in your home directory on flux, you can "submit"
+it to the scheduler using `qsub`:
+
+```bash
+qsub run_myScript.pbs
+```
+
+You should think of "q" in commands discussed here as short for ["queue"](https://www.google.com/search?q=queue+image&tbm=isch&tbo=u&source=univ&sa=X&ved=0ahUKEwiTuZSwr4zXAhUG8IMKHWB9DicQ7AkIPw&biw=1671&bih=935). Once your job is submitted, a "scheduler" will
+decide when to run it.  This can happen either quickly, after a very long time,
+or never depending on what resources you request and what resources are currently
+available. 
+
+
+### Interactive jobs  
+
+While the computation nodes are designed and best used for batch computing, they 
+can also be used interactively. This can be useful for things such as debugging when
+the problem you encounter only occurs when running on the compute nodes.
+
+Another way to run jobs ineteractively is using the [ARC connect service](https://www.connect.arc-ts.umich.edu) from within a web-browser.
+
+### Job Arrays
+
