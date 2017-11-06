@@ -1,0 +1,88 @@
+---
+title: "Dplyr vs Data.Table"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: pdf_document
+fontsize: 12pt
+geometry: margin=1in
+    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+library(tidyverse)
+library(data.table)
+nyc14 = fread('https://github.com/arunsrinivasan/flights/wiki/NYCflights14/flights14.csv')
+```
+
+## Instructions
+Consider the 2014 flights data used for the `data.table` examples. For each
+code snippet first provide a single-sentence summary of the value(s) being computed.
+Make your answer as concise and descriptive as possible. 
+
+## Questions 
+1.  Consider the following `data.table` expression:
+
+```{r}
+tab1 =
+  nyc14[ , .(n = .N), by=.(origin, dest)] %>%
+    .[, .(origin, n = n, pct = n / sum(n)), by=dest] %>%
+    .[pct > .75] %>%
+    .[order(-pct, dest)]
+```
+
+ a. Provide a one-sentence summary of what is being computed.
+\vspace{.2in}    
+ b. Provide a translation using `dplyr` syntax.
+\vspace{.75in}    
+
+2. Consider the `dplyr` code snippet below.  
+
+```{r}
+tab2 =
+  nyc14 %>%
+    group_by(origin, dest, carrier) %>%
+    summarize(n = n()) %>%
+    filter(n >= 80) %>%
+    group_by(origin, carrier) %>%
+    summarize(n = n()) %>%
+    arrange(origin,-n)
+```
+  
+ a. Provide a one-sentence summary of what is being computed.
+\vspace{.2in}    
+ b. Provide a translation using `data.table` syntax.
+
+\pagebreak
+
+  3.  Consider the R code snippet below.
+  
+```{r}
+nyc14_df = as.data.frame(nyc14)
+tab3 =
+ with(
+  with(nyc14_df,nyc14_df[grepl('HOU',dest),]),
+      {
+       keys = paste(carrier,month,sep=':')
+       u = unique(keys)
+       n = sapply(u, function(key) sum(key==keys))
+
+       tmp = strsplit(u,':')
+       carrier = sapply(tmp,function(x) x[1])
+       month  = sapply(tmp,function(x) x[2])
+       
+       cr  = unique(carrier)
+       ind = sapply(cr, function(x) grep(x,carrier))
+       data.frame(carrier,month,n)[ind,]
+      }
+ )
+```
+
+ a. Provide a one-sentence summary of what is being computed.
+\vspace{.25in}    
+ b. Provide a translation using `data.table` syntax.
+\vspace{1.25in}    
+ c. Provide a translation using `dplyr` syntax.
+
+
