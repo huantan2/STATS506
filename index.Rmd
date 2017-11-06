@@ -38,7 +38,7 @@ output:
   
   <a href="./ComputationalMethods.html">Bootstrapping and Permutation Tests</a>
   
-  <a href="./ProblemSet2.html">Problem Set 2</a>
+  <a href="./ProblemSet2.html">Problem Set 2</a> [[Solutions](./PS2_solutions.zip)]
   
   <a href="./Parallel_Computing_R.html">Parallel Computing in R</a>
 
@@ -48,5 +48,17 @@ output:
 
   <a href="./MatrixDecompositions.html">Matrix Decompositions</a>
 
+  [Midterm](./midterm_506_F17.pdf) [[Corrections (Take Home)](./Midterm_Corrections.pdf)] [[Solutions](./Midterm_solutions.pdf)]
+  
+  [Batch Computing and Job Scheduling](./BatchComputing.html)
+  
+  [Problem Set 3](./ProblemSet3.html)
+  
+  [R’s data.table package](./data.table.html)
+  
+  [Course Project](./CourseProject.html)
+  
+  </div>
+  <div>
   </div>
 </div>

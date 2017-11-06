@@ -13,6 +13,18 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+[Stats 506 Homepage](./index.html)
+
+## Where to find examples
+The examples for this lecture can be found here: [r_batch.tgz](./r_batch.tgz).
+To work with these from a Linux server:
+
+```bash
+wget https://jbhender.github.io/Stats506/r_batch.tgz
+tar xvfz r_batch.tgz
+cd r_batch
+```
+
 ## Batch Computing
 
 The term [batch processing](https://en.wikipedia.org/wiki/Batch_processing) refers
@@ -28,22 +40,21 @@ We [previously](https://jbhender.github.io/Stats506/Short_Introduction_to_Stata.
 stata -b my_script.do
 ```
 
-
 ### `R CMD BATCH`
 
-On Unix-alike machines, an R script `my_script.R` can be run in batch mode from the command line using:
+On Unix-alike machines, an R script `my_script0.R` can be run in batch mode from the command line using:
 
 ```bash
-R CMD BATCH my_script.R 
+R CMD BATCH my_script0.R 
 ```
 
-The script `my_script.R` is known as the _infile_.  An _outfile_ `my_script.Rout` will
+The script `my_script0.R` is known as the _infile_.  An _outfile_ `my_script.Rout` will
 be created in the working directory with the output from stdout and stderr that would
 usually appear at the Console.  You can specify an explicit name for the outfile as 
 in the example below:
 
 ```bash
-R CMD BATCH my_script.R ./output/results_my_script.Rout
+R CMD BATCH my_script0.R ./output/results_my_script0.Rout
 ```
 
 In the example, we wrote the R output to a folder `/output`. Examining the outfile,
@@ -51,10 +62,11 @@ we see the start up message from R, the commands run and their results, and
 a final call to `proc.time()` letting us know how long the script took to run.
 
 We can use _options_ to control how R is run and what gets printed.  This [page](https://github.com/gastonstat/tutorial-R-noninteractive/blob/master/02-batch-mode.Rmd) 
-describes some of the relevant options. Below are some examples:
+describes some of the relevant options. Follow the instructions in `my_script1.R`
+for some examples.
 
 I would recommend always passing `--vanilla` to make your scripts reproducible 
-and to avoid saving objects inadvertently.  A general principle of reproducibility is that
+and to avoid saving objects inadvertently.  A general principle of reproducible research is that
 results should not depend on local files not explicitly called in the script.
 
 ### `Rscript`
@@ -67,6 +79,15 @@ The `Rscript` command is similar to `R CMD BATCH` except:
   
 Here are a few examples:
 
+```R
+Rscript my_script1.R
+```
+
+```R
+Rscript -e "rnorm(2,0,sqrt(4))"
+```
+
+As a reminder, you can run one R script from within another using `source()`.
 
 ### Command Line Arguments
 
@@ -86,8 +107,20 @@ using
 Rscript my_script2.R --args 2 3 4
 ```
 
+For a more interesting example, we will examine the script `GammaMLE_mc.R` which
+contains code for a Monte Carlo experiment to compare the bias, variance, and MSE 
+of maximum likelihood estimation for parameters of the Gamma distribution.  
+The script `GammaMLE_test.R` tests the core functions for the Monte Carlo study.
 
 ## Job Scheduling & the Flux Cluster
+
+### Flux
+
+Flux is the University's high performance computing cluster. We will
+review the information [here](http://arc-ts.umich.edu/flux-user-guide/) to learn
+more.
+
+### Using the Flux Cluster
 
 We will review the information at this [page](http://arc-ts.umich.edu/flux-user-guide/).
 If you have not enrolled in DUO two-factor authentication please do so.
@@ -132,7 +165,7 @@ In order to submit jobs for computing on the Flux cluster, you must belong to a
 _flux allocation_.  You can think of a flux allocation as a pool of resources
 available to and shared among a group of folks. Statistics students have access
 to an allocation paid for by the Stats department, there are also shared allocations
-for Engineerring and LSA.  
+for Engineering and LSA.  
 
 You can see which flux allocations you have access to using the `mdiag` command:
 
@@ -142,6 +175,12 @@ mdiag -u uniqname
 
 After you have a user account, please login and use the command above to check your allocations.
 If you do not have an allocation, please send me an email.
+
+To check the jobs currently running or queued for an allocation use `showq`:
+
+```bash
+showq -w acct=stats_flux
+```
 
 ### Job Submission
 
@@ -156,7 +195,7 @@ Once you have a valid PBS script in your home directory on flux, you can "submit
 it to the scheduler using `qsub`:
 
 ```bash
-qsub run_myScript.pbs
+qsub run_myScript0.pbs
 ```
 
 You should think of "q" in commands discussed here as short for ["queue"](https://www.google.com/search?q=queue+image&tbm=isch&tbo=u&source=univ&sa=X&ved=0ahUKEwiTuZSwr4zXAhUG8IMKHWB9DicQ7AkIPw&biw=1671&bih=935). Once your job is submitted, a "scheduler" will
@@ -164,14 +203,55 @@ decide when to run it.  This can happen either quickly, after a very long time,
 or never depending on what resources you request and what resources are currently
 available. 
 
+You can use `showq` to see your job's status in the queue you submitted against or
+get addtional details using the `qstat` command.  To see a list of all your jobs
+(potentially in more than one queue) use:
+
+```bash
+qstat -u
+```
+
+You can delete a specific job using the jobid.  For example, if a job I no longer
+wish to run has `jobid=25505879`:
+
+```
+qdel 25505879
+```
 
 ### Interactive jobs  
 
 While the computation nodes are designed and best used for batch computing, they 
-can also be used interactively. This can be useful for things such as debugging when
-the problem you encounter only occurs when running on the compute nodes.
+can also be used interactively. This can be useful for debugging when
+the problem you encounter only occurs when running on the compute nodes. [Interactive
+jobs](http://arc-ts.umich.edu/document/interactive-pbs-jobs/) can be submitted using `qsub -I` with a list of resources requested:
 
-Another way to run jobs ineteractively is using the [ARC connect service](https://www.connect.arc-ts.umich.edu) from within a web-browser.
+```bash
+qsub -I -A stats_flux -q flux -l nodes=1:ppn=2, pmem=1gb,walltime=0:00:20,qos=flux
+```
+
+You can do this using a normal PBS file with the `-I` flag:
+
+```bash
+qsub -I run_myScript0.pbs
+```
+
+Another way to run jobs interactively is using the [ARC connect service](https://connect.arc-ts.umich.edu) from within a web-browser.
 
 ### Job Arrays
+
+To submit multiple jobs using the same pbs script, consider 
+[job arrays](http://arc-ts.umich.edu/software/torque/job-arrays/).
+
+There is a special flag `-t` for specifying job arrays.  You can access the
+value of the array id using the shell variable `PBS_ARRAYID`.  Job arrays can be useful
+for splitting a long-running computation into smaller chunks.  This can help with scheduling
+as it is often easier to get several short jobs to run than a single long job.  
+
+Job arrays have a single job id with brackets `[]` to denote elements of the
+array, i.e. `25505879[]`.
+
+For an example, inspect `runGammeMLE-mc.pbs`.
+
+[Stats 506 Homepage](./index.html)
+
 

@@ -28,7 +28,7 @@ in the corresponding languages.
 |--------------------------|-------------|-------------|-------------|
 | import data in native formats | load() (.RData), data() |-| use (.dta), webuse, sysuse|
 | saving data in native formats | save | - | save |
-| import delimited data (i.e. csv, tsv) | read.csv(), read.table() | *readr*: read_delim() | import delimited |
+| import delimited data (i.e. csv, tsv) | read.csv(), read.table() | *readr*: read_delim(), *data.table*: fread()| import delimited |
 | write/export delimited data | write.csv(), write.table() | *readr*: write_delim() | export delimited |
 
 ###  Tidy 
