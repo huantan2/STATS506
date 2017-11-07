@@ -9,8 +9,24 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## SQL and Relational Databses
+## SQL and Relational Databases
 
+
+### Lahman Examples
+For our examples today, we will use the `Lahman` package from R which
+contains historical baseball data from 1876-2016.
+
+```{r}
+library(dbplyr)
+library(Lahman)
+lahman <- <- lahman_sqlite()
+
+# Query the batting table
+lahman %>% tbl("BATTING")
+
+# Query 'LahmanData' with meta data
+print(lahman %>% tbl('LahmanData') %>% collect(), n = 25)
+```
 
 ## Tables, Servers, and Aliases
 
@@ -21,9 +37,27 @@ knitr::opts_chunk$set(echo = TRUE)
 CREATE TABLE my_table AS 
 SELECT col1, col2, col3 
   FROM some_other_table
+  WHERE col1 in ('A', 'B', 'C')
 ```
 
 ### Where and Having
+
+ + Boolean Logic
+
+```{r}
+## Get all 100+ RBI seasons since 2000
+rbi100 =
+  lahman %>% 
+  tbl(sql('
+      SELECT playerID, yearID, RBI 
+        FROM batting 
+        WHERE RBI >= 100 
+          AND yearID >= 2000
+      '))
+
+## This is dblyr for peforming the query
+rbi100 %>% collect()
+```
 
  + IN
  
@@ -36,7 +70,36 @@ SELECT col1, col2, col3
  
 ## Joins
 
-### Inner Joing
+### Inner Join
+
+
+```{r}
+## Example query using dbplyr
+hof = lahman %>% tbl('HallOfFame') #%>% select(playerID)
+M = lahman %>% tbl('Master') %>% filter(!is.na(deathYear))# %>% select(playerID)
+inner_join(hof, M, by='playerID') %>% arrange(birthYear, birthMonth) %>% show_query()
+
+## Query to find all living hall of fame members
+lahman %>% tbl(sql(
+' 
+SELECT m.nameFirst AS first_name, m.nameLast as last_name,
+  m.birthYear AS dob_year, m.birthMonth AS dob_month, m.birthDay AS dob_day
+FROM (SELECT * 
+        FROM HallOfFame
+       WHERE Inducted == "Y"
+      ) AS hof
+INNER JOIN 
+ (SELECT * 
+    FROM Master
+    WHERE deathYear IS NULL
+ ) AS m
+  ON (hof.playerID = m.playerID)
+ORDER BY dob_year, dob_month, dob_day
+'
+)) %>% collect()
+
+```
+
 
 ### Left Outer Join
 
@@ -48,4 +111,13 @@ SELECT col1, col2, col3
 
 ## Aggregation
 
-### DISTINC
+### DISTINCT
+
+
+## Resources 
+
++ [SQL Tutorials](https://www.w3schools.com/sql/)
+
++ [SQL Joins using data.table](https://rstudio-pubs-static.s3.amazonaws.com/52230_5ae0d25125b544caab32f75f0360e775.html)
+
++ [Databases uisng dplyr](http://db.rstudio.com/dplyr/)
