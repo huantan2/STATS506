@@ -1,7 +1,7 @@
 ---
-title: "SQL"
+title: "Introduction to SQL"
 author: "Statistics 506, Fall 2017"
-date: "11/5/2017"
+date: ""
 output: html_document
 ---
 
@@ -11,15 +11,47 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## SQL and Relational Databases
 
+A [relational database](https://en.wikipedia.org/wiki/Relational_database)
+is a set of rectangular data frames called _tables_
+linked by _keys_ relating one table to another.  Software implementations of
+such data structures are known as _relational database management systems_ (RDBMS).
+Most RDBMS use _structured query language_ ([SQL](https://en.wikipedia.org/wiki/SQL)) 
+to modify or search the relational database.
+
+SQL provides a syntax for interfacing with relational data. It is largely a 
+declarative language in that we use SQL to specify _what_ we wish to accomplish,
+leaving the _how_ to the RDBMS.  While there are standards for SQL implementations
+put out by the International Organization for Standardization (ISO) and
+the American National Standards Institute (ANSI), there are several open source
+and commercial implementations that each have unique features. 
+
+I will try to focus on the commonalities, but will be using an 
+[SQLlite](https://en.wikipedia.org/wiki/SQLite) engine in R for providing 
+examples. One unique feature of SQLlite is that it does not follow the client-server model,
+in which a physical computer storing the data an executing queries within the RDMBS, aka
+the _server_, is separate from the machine requesting the queries aka the _client_.
+The client-server model is popular in business and health care as it allows security
+and monitoring of how the data is queried.  It is also popular for many large open
+data projects (i.e [ensemble](https://www.ensembl.org/info/data/mysql.html)) where
+it is beneficial for data to be centrally maintained and frequently accessed on the fly.
+
+In order to write SQL queries within R I will be using the package
+[dbplyr](https://cran.r-project.org/web/packages/dbplyr/vignettes/dbplyr.html)
+which provides an SQL back end to `dplyr` functions, but also
+allows SQL queries to be parsed as strings.
 
 ### Lahman Examples
 For our examples today, we will use the `Lahman` package from R which
 contains historical baseball data from 1876-2016.
 
-```{r}
+```{r Lahman, warning=FALSE, message=FALSE}
+# Packages
+library(tidyverse)
 library(dbplyr)
 library(Lahman)
-lahman <- <- lahman_sqlite()
+
+# Create a local SQLlite database of the Lahman data
+lahman <- lahman_sqlite()
 
 # Query the batting table
 lahman %>% tbl("BATTING")
@@ -28,91 +60,433 @@ lahman %>% tbl("BATTING")
 print(lahman %>% tbl('LahmanData') %>% collect(), n = 25)
 ```
 
-## Tables, Servers, and Aliases
+## Working with tables
 
+### Search, subset, and limiting clauses
 
-## Search, subset, and limiting clauses
+The basic structure of a SQL query contains
+a `SELECT` statement indicating which columns are desired
+and a `FROM` statement explaining where to find them. 
+You can indicated a subset of rows using a `WHERE` clause.
 
 ```sql
 CREATE TABLE my_table AS 
 SELECT col1, col2, col3 
-  FROM some_other_table
-  WHERE col1 in ('A', 'B', 'C')
+  FROM some_existing_table
+  WHERE col1 IN ('A', 'B', 'C')
 ```
+
+In the model above, `CREATE TABLE` will only work with a client-server model
+if you have permissions to write to memory. Use a wild card `*` to select
+all columns in a table:
+
+```{r}
+lahman %>% 
+  tbl(sql('
+      SELECT *
+        FROM master
+        LIMIT 5
+      ')) %>% collect()
+```
+
+Above we use a `LIMIT` clause to grab just the first 5 rows of our table. This
+is good practice when developing new queries as it prevents large wait times
+only to discover a bug.
 
 ### Where and Having
 
- + Boolean Logic
+Here we will explore the limiting clause `WHERE` in greater detail. This
+will also work with `HAVING` which works on summary statistics rather
+than individual rows.
 
-```{r}
+#### Boolean Logic
+
+We can use Boolean comparisons in a `WHERE` clause as shown in the example
+below. We find all player-seasons since 2000 in which the player was 
+credited with an RBI 100 or more times.
+
+Here is our query:
+
+```sql
+SELECT playerID, yearID, RBI 
+  FROM batting 
+ WHERE RBI >= 100 AND yearID >= 2000
+```
+
+And here it is in `dbplyr`:
+
+```{r rb100}
 ## Get all 100+ RBI seasons since 2000
 rbi100 =
   lahman %>% 
   tbl(sql('
       SELECT playerID, yearID, RBI 
         FROM batting 
-        WHERE RBI >= 100 
-          AND yearID >= 2000
+        WHERE RBI >= 100 AND yearID >= 2000
       '))
+print(rbi100)
+```
 
+Note that the code above creates and test the query, but does not execute it over
+the entire table. To do that, we use `collect()`.
+
+```{r rbi100_collect}
 ## This is dblyr for peforming the query
 rbi100 %>% collect()
 ```
 
- + IN
- 
- + LIKE
- 
- + REGEXLIKE
+#### IN
 
-### Group By 
+To select on a column by testing against a set of fixed values use `IN`.
 
+```sql
+SELECT nameGiven as Given, nameLast Last, birthYear AS born --Note equivalent ways to rename columns
+  FROM master
+ WHERE nameLast IN ("Alou", "Griffey")
+```
+
+```{r IN}
+## Find all players with last name Alou or Griffey
+lahman %>% 
+  tbl(sql('
+      SELECT nameGiven as Given, nameLast Last, birthYear AS born
+        FROM master
+        WHERE nameLast IN ("Alou", "Griffey")
+      ')) %>% collect()
+```
+ 
+#### LIKE
+
+Use a `LIKE` statement with a `WHERE` clause to get partial string matching.
+You can use `%` to match any sub-string.
+
+```sql
+SELECT nameGiven as Given, nameLast Last, birthYear AS born
+  FROM master
+ WHERE nameLast LIKE "%riff%" 
+```
+
+```{r LIKE}
+## Find all players with last name containing 'riff' substring
+lahman %>% 
+  tbl(sql('
+      SELECT nameGiven as Given, nameLast Last, birthYear AS born
+        FROM master
+        WHERE nameLast LIKE "%riff%"
+      ')) %>% collect()
+```
+
+Most SQL implementations also have a `REGEXP` or `REGEXLIKE` function that works with
+regular expressions, but SQLite requires a [user defined](https://stackoverflow.com/questions/5071601/how-do-i-use-regex-in-a-sqlite-query) `regex()` for its use so
+we skip it here.
+
+### Combining limiting clauses
+
+Limiting `WHERE` clauses can be combined using `AND` and `OR`.
+
+```sql
+SELECT nameGiven as Given, nameLast Last, birthYear AS born, birthCountry as Place
+  FROM master
+ WHERE birthCountry == "P.R." AND birthYear LIKE "199%"
+```
+
+```{r AND}
+## Find all players born in Puerto Rico during the 1990's
+lahman %>% 
+  tbl(sql('
+      SELECT nameGiven as Given, nameLast Last, birthYear AS born, birthCountry as Place
+        FROM master
+        WHERE birthCountry == "P.R." AND birthYear LIKE "199%"
+      ')) %>% collect()
+```
+
+```{r OR}
+## Find all players born in Alaska (AK) or Hawaii (HI)
+lahman %>% 
+  tbl(sql('
+      SELECT nameGiven as Given, nameLast Last, birthYear AS born, birthCountry as Place
+        FROM master
+        WHERE birthState == "HI" OR birthState == "AK"
+      ')) %>% collect()
+```
+
+### ORDER BY
+
+Use an `ORDER BY` clause with a comma separated list of columns to arrange
+the table.
+
+```sql
+SELECT playerID, yearID, RBI 
+  FROM batting 
+ WHERE RBI >= 100 AND yearID >= 2010
+ ORDER BY yearID, RBI
+```
+
+```{r rb100_order}
+## Get all 100+ RBI seasons since 2010, ordered 
+rbi100 =
+  lahman %>% 
+  tbl(sql('
+      SELECT playerID, yearID, RBI 
+        FROM batting 
+        WHERE RBI >= 100 AND yearID >= 2010
+        ORDER BY yearID, -RBI
+      '))
+rbi100 %>% collect()
+```
+
+## Aggregations, Group By
+
+We can perform aggregations such as sums, means, and counts similar to `summarize()`
+from `dplyr`.
+
+We can use a `GROUP BY` clause for the split-apply-combine pattern.
+
+Here we find the players with the most total RBI since 2010.
+
+```sql
+SELECT playerID, sum(RBI) as RBI_total
+  FROM batting 
+  WHERE yearID >= 2010
+  GROUP BY playerID
+  ORDER BY -RBI_total
+```
+
+```{r rb100_total}
+## Count total RBIs since 2010 by player
+lahman %>% 
+  tbl(sql('
+      SELECT playerID, sum(RBI) as RBI_total
+        FROM batting 
+        WHERE yearID >= 2010
+        GROUP BY playerID
+        ORDER BY -RBI_total
+      ')) %>% collect()
+```
+
+### Having
+
+The operator defining a limiting clause on an aggregate variable is `HAVING`. It
+is essentially like `WHERE` except for operating on summary statistics rather than
+individual rows.
+
+In the query below, observe that the `HAVING` clause comes after the `GROUP BY`
+
+but before the `ORDER BY`.
+```sql
+SELECT playerID, sum(RBI) as RBI_total
+  FROM batting 
+ WHERE yearID >= 2010
+ GROUP BY playerID
+   HAVING RBI_total >= 500
+ ORDER BY -RBI_total
+```
+
+```{r rbi500}
+## Players with 500+ RBIs since 2010
+lahman %>% 
+  tbl(sql('
+      SELECT playerID, sum(RBI) as RBI_total
+        FROM batting 
+        WHERE yearID >= 2010
+        GROUP BY playerID
+        HAVING RBI_total >= 500
+        ORDER BY -RBI_total
+      ')) %>% collect()
+```
  
 ## Joins
 
+So far we have discussed working with single tables only.  The SQL term for
+merging data from two or more tables is a 'join'.  All joins are based
+on the idea of equating rows that match on one or more variables.  Below we will discuss the
+following types of joins:
+
+  + Inner Joins - produce tables containing rows for which matches are found in both tables,
+  + Left Joins - produce tables containing rows for (at least) each row on the left table with additional
+  columns from the right table,
+  + Right Joins - produce tables like left joins but reversing the role of the right and left tables
+  + Full or Outer Joins - produce tables with all rows appearing in either table.
+  + Anti Joins - produce tables with all unmatched rows from both tables.
+
 ### Inner Join
 
+What if we wanted to supplement our earlier table showing players with
+500+ RBI since 2000 with information about those players? We could use
+an inner join of our RBI table with the 'Master' table to accomplish this.
 
-```{r}
-## Example query using dbplyr
-hof = lahman %>% tbl('HallOfFame') #%>% select(playerID)
-M = lahman %>% tbl('Master') %>% filter(!is.na(deathYear))# %>% select(playerID)
-inner_join(hof, M, by='playerID') %>% arrange(birthYear, birthMonth) %>% show_query()
+```sql
+SELECT m.nameFirst First, m.nameLast Last, sum(RBI) as RBI_TOTAL
+  FROM batting b
+  INNER JOIN master m ON b.playerID = m.playerID 
+  WHERE yearID >= 2010
+  GROUP BY b.playerID
+  HAVING RBI_total >= 500
+  ORDER BY -RBI_total
+```
 
-## Query to find all living hall of fame members
+```{r inner_join}
 lahman %>% tbl(sql(
-' 
-SELECT m.nameFirst AS first_name, m.nameLast as last_name,
-  m.birthYear AS dob_year, m.birthMonth AS dob_month, m.birthDay AS dob_day
-FROM (SELECT * 
-        FROM HallOfFame
-       WHERE Inducted == "Y"
-      ) AS hof
-INNER JOIN 
- (SELECT * 
-    FROM Master
-    WHERE deathYear IS NULL
- ) AS m
-  ON (hof.playerID = m.playerID)
-ORDER BY dob_year, dob_month, dob_day
 '
-)) %>% collect()
+SELECT m.nameFirst First, m.nameLast Last, sum(RBI) as RBI_TOTAL
+  FROM batting b
+  INNER JOIN master m ON b.playerID = m.playerID 
+  WHERE yearID >= 2010
+  GROUP BY b.playerID
+  HAVING RBI_total >= 500
+  ORDER BY -RBI_total
+'
+))
+```
 
+In this example, an inner join suffices because each `playerID` in the `batting`
+table is linked to a `playerID` in the `master` table. 
+
+### Left & Right (Outer) Joins
+
+In a left join -- sometimes called a left outer join -- we add columns
+from the right table to the left table when matching rows are found.  Rows
+from the left table with no matches from the right table are retained with
+columns from the right table filled in as `NULL` (i.e. `NA`).  When there
+are multiple matches of a row from the left table to rows in the right table, 
+these each become a row in the new table.
+
+A right join is equivalent to a left join with the exception that the roles
+between right and left are reversed. My personal preferences is to always structure
+queries as left joins for simplicity.  
+
+Left joins are particularly useful when the information in the right table is only 
+applicable to a subset of the rows from the left table. As an example,
+suppose we would like to know which US colleges and universities have produced
+the most "Rookie of the Year Awards" given to the best debuting player(s) each season.
+
+To get started, we first test a query to find the last college attended.
+```sql
+-- Last college attended
+SELECT *
+FROM CollegePlaying
+GROUP BY playerID
+HAVING yearID == max(YearID)
+```
+
+```{r last_col}
+# Query to find last college atttended
+lahman %>% tbl(sql(
+'
+SELECT *
+FROM CollegePlaying
+GROUP BY playerID
+HAVING yearID == max(YearID)
+'
+))
+```
+
+Now, we find all distinct awards in the `AwardPlayers` table.
+```{r awards}
+# Distinct Player Awards
+lahman %>% tbl(sql(
+'
+SELECT distinct(awardID)
+FROM AwardsPlayers
+'
+)) %>% collect() %>% print(n=30)
 ```
 
 
-### Left Outer Join
+Next we test a query for finding all Rookie of the Year Awards.
+```sql
+SELECT *
+FROM AwardsPlayers
+WHERE awardID LIKE "Rookie%"
+```
 
-### Right Outer Join
+```{r roy}
+# Query to find Rookie of the Year Awards
+lahman %>% tbl(sql(
+'
+SELECT *
+FROM AwardsPlayers
+WHERE awardID LIKE "Rookie%"
+'
+)) 
+```
 
-### Full Outer Join
+Finally, we use a _left join_ of the tables for ROY awards and last college
+attended to match winners to their schools.  We need a left join as many 
+of the winners may never have played collegiately.
 
-### Anti Join
+```sql
+SELECT roy.playerID playerID, roy.yearID year, lgID league, schoolID
+  FROM AwardsPlayers roy
+  LEFT JOIN 
+    (SELECT *  --Final College Attended
+      FROM CollegePlaying
+      GROUP BY playerID
+      HAVING yearID == max(YearID)
+    ) c
+ ON c.playerID = roy.playerID
+ WHERE awardID LIKE "Rookie%"
+```
 
-## Aggregation
+```{r last_college_roy}
+# Query to find last college for ROY
+lahman %>% tbl(sql(
+'
+SELECT roy.playerID playerID, roy.yearID year, lgID league, schoolID
+  FROM AwardsPlayers roy
+  LEFT JOIN 
+    (SELECT *  --Last College Attended
+      FROM CollegePlaying
+      GROUP BY playerID
+      HAVING yearID == max(YearID)
+    ) c
+ ON c.playerID = roy.playerID
+ WHERE awardID LIKE "Rookie%"
+'
+))
+```
 
-### DISTINCT
+To complete the example, we modify the query to display which schools
+have produced the most ROY awards in total.
 
+```sql
+SELECT schoolID, count(c.playerID) as ROY_awards
+  FROM AwardsPlayers roy
+  LEFT JOIN 
+    (SELECT *  --Last College Attended
+      FROM CollegePlaying
+      GROUP BY playerID
+      HAVING yearID == max(YearID)
+    ) c
+ ON c.playerID = roy.playerID
+ WHERE awardID LIKE "Rookie%"
+   AND schoolID IS NOT NULL
+ GROUP BY schoolID
+ HAVING ROY_awards > 1
+ ORDER BY -ROY_awards
+```
+
+```{r roy_by_school_top}
+# Which schools have produced the most ROY?
+lahman %>% tbl(sql(
+'
+SELECT schoolID, count(c.playerID) as ROY_awards
+  FROM AwardsPlayers roy
+  LEFT JOIN 
+    (SELECT *  --Last College Attended
+      FROM CollegePlaying
+      GROUP BY playerID
+      HAVING yearID == max(YearID)
+    ) c
+ ON c.playerID = roy.playerID
+ WHERE awardID LIKE "Rookie%"
+   AND schoolID IS NOT NULL
+ GROUP BY schoolID
+ HAVING ROY_awards > 1
+ ORDER BY -ROY_awards
+'
+)) %>% collect()
+```
 
 ## Resources 
 
