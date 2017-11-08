@@ -7,11 +7,15 @@ output:
       theme: journal
       highlight: pygments
       css: styles.css
+      toc: true
+      toc_depth: 3
+      toc_float: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(cache = TRUE)
+library(tidyverse); library(magrittr); library(microbenchmark)
 ```
 
 [Stats 506 Homepage](./index.html)
@@ -19,9 +23,9 @@ knitr::opts_chunk$set(cache = TRUE)
 ## About `data.table`
 
 The `data.table` package in R provides an extension of the`data.frame` class that
-aims to be both more computationally and memory efficient.  It is paricularly well suited
+aims to be both more computationally and memory efficient.  It is particularly well suited
 for large in-memory data sets and utilizes _indexed keys_ to allow quick search, subset,
-and aggregrate by group operations.  
+and aggregate by group operations.  
 
 
 ## Creating _data.table_ objects
@@ -59,7 +63,7 @@ The basic idea is `DT[i, j, by]` where we:
   +  select, transform, or create columns (variables) in the `j` statement
   +  and group with the `by` statement.  
   
-Additional operations can also be expressed within the brackets.  Rememer that,
+Additional operations can also be expressed within the brackets.  Remember that,
 even for a _data.frame_ or _matrix_ the left bracket `[` is actually a **function**:
 
 ```{r}
@@ -91,7 +95,7 @@ In the above, we used `.N` to index the last row.  This is a special symbol defi
 by `data.table` to hold the number of rows or observations in the "current" group.
 "Current" here refers to the scope in which it is used.
 
-Also, notice the difference from standard _data.frame_ or matrix subsetting:
+Also, notice the difference from standard _data.frame_ or matrix sub-setting:
 
 ```{r}
 # Indexing a matrix
@@ -111,7 +115,7 @@ lga_dtw[order(-month,-day,dep_time)]
 
 ### Column Selection
 
-Get the departure and arrival times, flight number, and carrier for all flighs
+Get the departure and arrival times, flight number, and carrier for all flights
 from LGA to DTW:
 
 ```{r}
@@ -132,10 +136,19 @@ a character vector of column names.
 nyc14[origin == 'LGA' & dest == 'DTW', c("dep_time", "arr_time", "carrier", "flight")]
 ```
 
+We can deselect columns using negation (`-` or `!`) if we also set "with" to false:
+
+```{r}
+nyc14 = nyc14[, -c("tailnum"), with=FALSE]
+
+nyc14 = nyc14[, !c("cancelled", "year", "day", "hour", "min"), with=FALSE]
+nyc14
+```
+
 ### Computing with Columns
 
 The "j"-clause can be used to compute with column variables like "dplyr::summarize".
-Below, we find the upper and lower quintiles of departure delays for fligths between LGA and DTW
+Below, we find the upper and lower quintiles of departure delays for flights between LGA and DTW
 during this period:
 
 ```{r}
@@ -150,7 +163,7 @@ greater than 15 minutes:
 nyc14[,.(delay15 = 1*{dep_delay > 15 | arr_delay > 15})]
 ```
 
-To get behvaior like "dplyr::mutate" we need [reference semantics](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html).
+To get behavior like "dplyr::mutate" we need [reference semantics](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html).
 
 First, using the special function "`:=()`" we can add the `delay15` above. 
 
@@ -160,7 +173,7 @@ nyc14
 ```
 
 Pay close attention to the first line of the code above. Why didn't it print and
-why didn't we need an assignment? Also, what is the role of that "L"?f
+why didn't we need an assignment? Also, what is the role of that "L"?
 
 Another way to accomplish this is as below. Which do you find more intuitive?
 
@@ -169,28 +182,339 @@ nyc14[,"delay30" := 1L*{dep_delay > 30 | arr_delay > 30}]
 nyc14
 ```
 
-### by
+### by  
+
+To perform operations group-wise use a `by` argument after the "j" statement.
+
+```{r}
+nyc14[,"delay30" := 1L*{dep_delay > 30 | arr_delay > 30}]
+# Find percent of flights with delays of 15 minutes or more by carrier
+nyc14[,.(del30_pct = 100*mean(delay30)), by=carrier]
+```
+
+We can use a list to specify multiple grouping variables.  
+
+```{r}
+# Find percent of flights with delays of 15 minutes or more by carrier and origin.
+nyc14[,.(del30_pct = 100*mean(delay30)), by=.(carrier, origin)]
+```
+
+### Chaining
+
+As with standard `data.frame` indexing,  we can compose `data.table` bracketed
+expressions using chaining.
+
+```{r}
+## Find max departure delay by flight among all flights from LGA to DTW
+## Then, select flights within the shortest 10% of max_delay
+nyc14[origin=='LGA' & dest=='DTW', .(max_delay = max(dep_delay)), 
+      by = .(carrier, flight)
+     ][, .(carrier, flight, max_delay, max_delay_q10 = quantile(max_delay, .1)) 
+     ][max_delay < max_delay_q10, -"max_delay_q10", with=FALSE
+     ]
+```
+
+If you prefer pipes `%>%` for clarity, you can use them by appending a `.` before
+the opening bracket:
+
+```{r}
+# Same as above, but using magrittr::%>%
+  nyc14[origin=='LGA' & dest=='DTW', .(max_delay = max(dep_delay)), by = .(carrier, flight)] %>%
+    .[, .(carrier, flight, max_delay, max_delay_q10 = quantile(max_delay, .1))] %>%
+    .[max_delay < max_delay_q10, -"max_delay_q10", with=FALSE]
+```
+
+
+Here is a quick timing comparison between chaining, piping, and an equivalent `dplyr`
+expression.  The differences are negligible for this data size.  
+```{r}
+# data.table chaining
+f_chain <- function(){
+  nyc14[origin=='LGA' & dest=='DTW', .(max_delay = max(dep_delay)), 
+      by = .(carrier, flight)
+     ][, .(carrier, flight, max_delay, max_delay_q10 = quantile(max_delay, .1)) 
+     ][max_delay < max_delay_q10, -"max_delay_q10", with=FALSE
+     ]
+}
+
+# data.table with pipe
+f_pipe <- function(){
+  nyc14[origin=='LGA' & dest=='DTW', .(max_delay = max(dep_delay)), by = .(carrier, flight)] %>%
+    .[, .(carrier, flight, max_delay, max_delay_q10 = quantile(max_delay, .1))] %>%
+    .[max_delay < max_delay_q10, -"max_delay_q10", with=FALSE]
+}
+
+# dplyr pipe
+f_dplyr <- function(){
+   nyc14 %>% 
+    filter(origin=='LGA' & dest=='DTW') %>%
+    group_by(carrier, flight) %>%
+    summarize(max_delay = max(dep_delay)) %>%
+    ungroup() %>%
+    mutate(max_delay_q10 = quantile(max_delay, .1)) %>%
+    filter(max_delay < max_delay_q10) %>%
+    select(-max_delay_q10)
+}
+
+# compare timing
+microbenchmark(f_chain, f_pipe, f_dplyr, times=1e3L) 
+```
 
 ### `.SD`
 
-## Copies
+Recall that the special symbol `.N` contains the number of rows in each 
+subset defined using `by`.  
 
 ```{r}
-DT1 = data.table(A=5:1,B=letters[5:1])
-DT2 = DT1
-DT3 = copy(DT1)
+# How many total flights by each carrier to DTW?
+nyc14[dest=='DTW', .N, by=carrier]
+```
 
-DT1[,C := 2*A] 
+There is another special symbol `.SD` which references the entire _subset of data_
+for each group.  It is itself a `data.table` as we can see using the code below.
+
+```{r}
+nyc14[dest=='DTW', .(rows=nrow(.SD), cols=ncol(.SD), n=.N), by=carrier]
+```
+
+```{r}
+nyc14[dest=='DTW', print(.SD), by=carrier]
+```
+
+We can pass an additional argument `.SDcols` to the bracketing function to 
+limit the columns in `.SD`. Note that `.SD` does not contain the grouping columns.
+
+```{r}
+nyc14[dest=='DTW', .(rows=nrow(.SD), cols=ncol(.SD), n=.N), by=carrier,
+      .SDcols = c("origin", "dest", "flight", "dep_time")]
+```
+
+```{r}
+nyc14[dest=='DTW', print(.SD), by=carrier, .SDcols = c("origin", "dest", "flight", "dep_time")]
+```
+
+This can be useful in the "j" statement because it allows use `lapply` or other
+functions returning a list to.
+
+```{r}
+# What is the mean departure & arrival delay for each flight to DTW?
+nyc14[dest=='DTW', lapply(.SD, mean), by=.(origin, dest, carrier, flight),
+      .SDcols = c("arr_delay", "dep_delay")]
+```
+
+Columns can also be specified as ranges in `.SDcols`.  
+```{r}
+nyc14[dest=='DTW', lapply(.SD, mean), 
+      by=.(origin, dest, carrier, flight), 
+      .SDcols = arr_delay:dep_delay]
+```
+
+## Copies
+
+One of the goals of the `data.table` package is to use less memory. This is achieved
+in part by preferring "shallow" copies by reference over "deep copies" by value
+when appropriate. When an object is copied by _reference_ it shares physical memory
+address with the object it is copied from.  This is more efficient, but _may_ lead to confusion 
+as changing the value in memory also changes what is pointed to by both objects.
+
+In the example below, we create a `data.table` `DT1` and then create a copy `DT2`.
+Typical R objects would be copied by value, but `DT2` is copied by reference.  We
+can ask for a copy by value explicitly using `copy()`.  
+```{r}
+DT1 = data.table(A=5:1, B=letters[5:1])
+DT2 = DT1         # Copy by reference
+DT3 = copy(DT1)   # Copy by value
+DT4 = DT1[,.SD]
+  
+DT1[,C := 2*A]    # Create a new column 
 DT1
 DT2 
 DT3
 ```
 
-## keys
+After updating `DT1` to include a new column, `C`, the column appears in `DT2` 
+as well because `DT1` and `DT2` refer to the same object.  
 
 ## Reference Semantics
 
-[vignette](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html)
+In the last example above we used
+[reference semantics](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reference-semantics.html) to create a new column in `DT1` without copying the other other columns and
+reassigning to a new `DT1` object.  
+
+A similar notation using `:=` as a function is below.
+
+```{r}
+DT1[,`:=`(D=C+1)]
+```
+
+One way in which this is useful is to modify subsets of a `data.table` without
+re-allocating the entire thing.
+
+```{r}
+# Truncated all arrival delays at 0
+nyc14[arr_delay<0, arr_delay := 0][]
+range(nyc14$arr_delay)
+```
+
+We can also delete columns by reference using `NULL`:
+
+```{r}
+nyc14[,c("month") := NULL]
+# i.e. nyc14$month = NULL
+```
+
+We can use this with `by` to accomplish tasks such as adding a column showing
+the maximum departure delay by flight.
+
+```{r}
+nyc14[,max_dep_delay := max(dep_delay), by=.(carrier, flight)][]
+```
+
+With the functional form you can create multiple columns by reference.
+```{r}
+nyc14[, `:=`(max_dep_delay = max(dep_delay),
+             min_dep_delay = min(dep_delay)        
+            ),
+      by=.(carrier, flight)
+     ][]
+
+```
+
+The last set of empty brackets above is a short-hand for a subsequent call
+to `print(nyc14)`.
+
+## Keys and Indexing
+
+The material on in this section is based on the vignette [here](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-keys-fast-subset.html).
+
+Above we used "indexing" in a generic sense to mean "subsetting".  What we mean by "indexing" here
+is more specific and [technical](https://en.wikipedia.org/wiki/Database_index): we create an
+_indexed_ data table by designating specific columns as _keys_ and sorting the table by these keys to
+create more efficient lookups and aggregations.  
+
+We can designate one or more columns as a _key_ in `data.table` using `setkey()`.
+
+```{r}
+setkey(nyc14, origin) #also, setkeyv(nyc14, "origin") if character is preferred.
+key(nyc14)
+```
+
+In `data.table` when we designate columns as keys, the rows are re-ordered by _reference_ in
+_increasing_ order. In other words, the original columns are left _as is_ in memory but a new
+column `key` is created to store the order of the `data.table`. This works something like this:
+
+```{r}
+# Example of keys on a data-frame
+df = data.frame(ID = sample(LETTERS,100,replace=TRUE), value=rpois(100, 10))
+df$key = order(df$ID)
+head(df)
+head(df[df$key, ])
+```
+
+After a key has been set, we can compute in the "i"-statement using lists:
+
+```{r}
+nyc14[.("LGA")]
+```
+
+We can have more than one column contribute to the order used to form the key.
+
+```{r}
+# key by origin and destination
+setkey(nyc14,origin,dest)
+key(nyc14)
+
+# Get flighs of any origin to DTW
+nyc14[.(unique(origin),'DTW')]
+```
+
+We can of course combine this with 'j' and 'by' statements.
+
+```{r}
+# Find the median departure delay for all flights to DTW
+nyc14[.(unique(origin),'DTW'), 
+      .(med_dep_delay = as.numeric(median(dep_delay)), n=.N),
+      by=.(origin, dest, flight)
+     ] %>%
+  .[order(origin, med_dep_delay, -n)] %>% # Order
+  .[n>42]  # Limit to at least ~1 flight per week
+```
+
+What is the advantage of indexing by setting a key? 
+
+```{r key_example}
+# Generate two columns of data with 10 million rows
+N = 1e8
+DT = data.table(group = sample(1:26, N, replace=TRUE))
+DT = DT[ ,.(count=rpois(.N,group)), keyby=group]
+
+# See size of this data
+print(object.size(DT),units='MB')
+
+## Unkeyd approach
+tm0 = system.time({
+  ans0 <- DT[group==1 | group==26, .(lambda_hat = mean(count)), by=group]
+})
+
+## Alternate unkeyed approach
+tm1 = system.time({
+  ans1 <- DT[, .(lambda_hat = mean(count)), by=group][group==1 | group==26]
+})
+
+# Set key
+setkey(DT,group)
+
+# keyed approach
+tm2 = system.time({
+  ans2 <- DT[.(c(1,26)),.(lambda_hat = mean(count)), by=group]
+})
+
+# Compare timings (seconds)
+rbind(tm0,tm1,tm2)[,'elapsed']
+
+rm(DT,tm0,tm1,tm2)
+```
+
+## Working with dates
+
+## Reshaping data tables
+
+The material in this section is partially based on this 
+[vignette](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html).
+
+
+In the example below, we compute the total number of fligths and the number
+of unique planes used for each flight from NYC to DTW.
+
+
+
+
+First, we determine the number of days in the data set so we can filter out
+flights ocurring less than once a week on average.
+
+```{r}
+## How many days of observed data do we have?
+library(lubridate)
+nyc14[, date := ymd(paste(year,month,day,sep='-'))]
+n_days = as.integer(nyc14[,.(days = max(date) - min(date))]$days) + 1
+
+## Another approach
+dim(nyc14[ ,.(n=.N), by=.(year, month, day)])[1]
+
+## Use floor to discount partial weeks
+## subtract one to allow for the same day missing in start/end week
+n_weeks = floor(n_days / 7)  - 1
+```
+
+```{r}
+## Count flights and planes by flight, require >=1 per week on average
+to_dtw = nyc14[dest=='DTW', 
+               .(n_flights = .N, n_planes=length(unique(tailnum))),
+               by=.(origin, carrier, flight)
+              ][{n_flights/n_weeks} >= 1]
+
+to_dtw[, .N, by=.(origin, carrier)]
+```
 
 ## Resources 
 
@@ -208,3 +532,6 @@ DT3
   + The [`dtplyr`](https://github.com/hadley/dtplyr) package provides `dplyr` methods for
   `data.table` objects (objects of _class_ data.table). That is `dtplyr` is the
   `data.table` _backend_ for `dplyr` -- the part facing away from the interactive user.
+  
+  + [Practice Exam Questions](./DplyrVsDT.pdf) [Solutions](./DplyrVsDT_solutions.html) will be posted after class.
+  
