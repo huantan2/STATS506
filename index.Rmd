@@ -58,6 +58,8 @@ output:
   
   [Course Project](./CourseProject.html)
   
+  [Basic SQL](./Intro_to_SQL.html)
+
   </div>
   <div>
   </div>

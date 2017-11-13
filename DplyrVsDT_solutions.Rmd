@@ -30,12 +30,13 @@ tab1 =
     .[pct > .75] %>%
     .[order(-pct, dest)]
 ```
-    a. Provide a one-sentence summary of what is being computed.
 
-_ This code finds all destination cities for which more than 75% of
-the flights are from a single origin airport. _
+a. Provide a one-sentence summary of what is being computed.
+
+_This code finds all destination cities for which more than 75% of
+the flights are from a single origin airport._
     
-    b. Provide a translation using `dplyr` syntax.
+b. Provide a translation using `dplyr` syntax.
 
 ```{r}
 nyc14 %>%
@@ -62,8 +63,8 @@ tab2 =
 ```
 
  a. Provide a one-sentence summary of what is being computed.
- _ For each carrier and origin airport, this code counts the number of destination
- cities with at least 80 observed flights. _
+ _For each carrier and origin airport, this code counts the number of destination
+ cities with at least 80 observed flights._
  
  b. Provide a translation using `data.table` syntax.
  
@@ -104,8 +105,8 @@ tab3 =
 
   a. Provide a one-sentence summary of what is being computed.
   
-  _ This code computes the number of flights from NYC to HOU each month
-  by carrier. _
+  _This code computes the number of flights from NYC to HOU each month
+  by carrier._
     
   b. Provide a translation using `data.table` syntax.
 

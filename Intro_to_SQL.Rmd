@@ -27,10 +27,10 @@ and commercial implementations that each have unique features.
 
 I will try to focus on the commonalities, but will be using an 
 [SQLlite](https://en.wikipedia.org/wiki/SQLite) engine in R for providing 
-examples. One unique feature of SQLlite is that it does not follow the client-server model,
-in which a physical computer storing the data an executing queries within the RDMBS, aka
-the _server_, is separate from the machine requesting the queries aka the _client_.
-The client-server model is popular in business and health care as it allows security
+examples. One unique feature of SQLite is that it does not follow the client-server model.
+In this model, a physical computer storing the data and executing queries within the RDMBS, 
+the _server_, is separate from the machine requesting the queries known as the _client_.
+The client-server model is popular in business, health care, and other domains as it allows security
 and monitoring of how the data is queried.  It is also popular for many large open
 data projects (i.e [ensemble](https://www.ensembl.org/info/data/mysql.html)) where
 it is beneficial for data to be centrally maintained and frequently accessed on the fly.
@@ -93,11 +93,11 @@ Above we use a `LIMIT` clause to grab just the first 5 rows of our table. This
 is good practice when developing new queries as it prevents large wait times
 only to discover a bug.
 
-### Where and Having
+### Limiting Clauses
 
-Here we will explore the limiting clause `WHERE` in greater detail. This
-will also work with `HAVING` which works on summary statistics rather
-than individual rows.
+Here we will explore the limiting clause `WHERE` in greater detail. Most of what 
+we discuss in this section will also work with `HAVING` which operates
+on summary statistics rather than individual rows.
 
 #### Boolean Logic
 
@@ -182,7 +182,8 @@ we skip it here.
 
 ### Combining limiting clauses
 
-Limiting `WHERE` clauses can be combined using `AND` and `OR`.
+Limiting `WHERE` clauses can be combined using `AND` and `OR`. Statements
+can be negated using `NOT`.
 
 ```sql
 SELECT nameGiven as Given, nameLast Last, birthYear AS born, birthCountry as Place
@@ -413,7 +414,7 @@ WHERE awardID LIKE "Rookie%"
 
 Finally, we use a _left join_ of the tables for ROY awards and last college
 attended to match winners to their schools.  We need a left join as many 
-of the winners may never have played collegiately.
+of the winners may never have played collegiate baseball.
 
 ```sql
 SELECT roy.playerID playerID, roy.yearID year, lgID league, schoolID
@@ -476,7 +477,7 @@ SELECT schoolID, count(c.playerID) as ROY_awards
     (SELECT *  --Last College Attended
       FROM CollegePlaying
       GROUP BY playerID
-      HAVING yearID == max(YearID)
+      HAVING yearID == max(yearID)
     ) c
  ON c.playerID = roy.playerID
  WHERE awardID LIKE "Rookie%"
@@ -488,10 +489,29 @@ SELECT schoolID, count(c.playerID) as ROY_awards
 )) %>% collect()
 ```
 
+## Using `show_query()`
+
+If you are new to SQL but comfortable with `dplyr` you may find `show_query()` useful
+for understanding how dplyr statements are translated to SQL.
+
+```{r}
+# Players with more than 5 years at a single school.
+lahman %>% 
+  tbl('CollegePlaying') %>% 
+  filter(yearID > 1900) %>%
+  group_by(playerID, schoolID) %>%
+  summarize(n_year = n()) %>%
+  filter(n_year>5) %>%
+  show_query()
+```
+
+
 ## Resources 
 
 + [SQL Tutorials](https://www.w3schools.com/sql/)
 
 + [SQL Joins using data.table](https://rstudio-pubs-static.s3.amazonaws.com/52230_5ae0d25125b544caab32f75f0360e775.html)
 
-+ [Databases uisng dplyr](http://db.rstudio.com/dplyr/)
++ [SQL in 10 Easy Steps](https://blog.jooq.org/2016/03/17/10-easy-steps-to-a-complete-understanding-of-sql/)
+
++ [Databases using dplyr](http://db.rstudio.com/dplyr/)

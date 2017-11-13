@@ -475,46 +475,10 @@ rbind(tm0,tm1,tm2)[,'elapsed']
 rm(DT,tm0,tm1,tm2)
 ```
 
-## Working with dates
-
 ## Reshaping data tables
 
-The material in this section is partially based on this 
-[vignette](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html).
+We did not cover this in class, but you may wish to read this [vignette](https://cran.r-project.org/web/packages/data.table/vignettes/datatable-reshape.html).
 
-
-In the example below, we compute the total number of fligths and the number
-of unique planes used for each flight from NYC to DTW.
-
-
-
-
-First, we determine the number of days in the data set so we can filter out
-flights ocurring less than once a week on average.
-
-```{r}
-## How many days of observed data do we have?
-library(lubridate)
-nyc14[, date := ymd(paste(year,month,day,sep='-'))]
-n_days = as.integer(nyc14[,.(days = max(date) - min(date))]$days) + 1
-
-## Another approach
-dim(nyc14[ ,.(n=.N), by=.(year, month, day)])[1]
-
-## Use floor to discount partial weeks
-## subtract one to allow for the same day missing in start/end week
-n_weeks = floor(n_days / 7)  - 1
-```
-
-```{r}
-## Count flights and planes by flight, require >=1 per week on average
-to_dtw = nyc14[dest=='DTW', 
-               .(n_flights = .N, n_planes=length(unique(tailnum))),
-               by=.(origin, carrier, flight)
-              ][{n_flights/n_weeks} >= 1]
-
-to_dtw[, .N, by=.(origin, carrier)]
-```
 
 ## Resources 
 
@@ -533,5 +497,5 @@ to_dtw[, .N, by=.(origin, carrier)]
   `data.table` objects (objects of _class_ data.table). That is `dtplyr` is the
   `data.table` _backend_ for `dplyr` -- the part facing away from the interactive user.
   
-  + [Practice Exam Questions](./DplyrVsDT.pdf) [Solutions](./DplyrVsDT_solutions.html) will be posted after class.
+  + [Practice Exam Questions](./DplyrVsDT.pdf). A similar question will appear on the final exam. Here are example [solutions](./DplyrVsDT_solutions.html).
   
