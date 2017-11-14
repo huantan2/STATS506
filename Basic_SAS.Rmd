@@ -1,0 +1,143 @@
+---
+title: "Basic SAS"
+author: "Statistics 506, Fall 2017"
+date: ""
+output:
+  html_document:
+      theme: journal
+      highlight: pygments
+      css: styles.css
+---
+
+[Stats 506 Homepage](./index.html)
+
+## Overview
+
+SAS is closed source commercial software widely used by industry.  For instance,
+SAS promotional materials claim 83,000 installations including most of the top 100
+companies from the Fortune 500.  It is also quite popular in bio statistics and
+the healthcare industry.
+
+Our examples will largely be based on Professor Shedden's 2016 course [notes](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/sas_intro/)
+and [case studies](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/sas_flights/).
+Please his course notes as your primary resource and think of the below as supplementary examples.
+
+## Accessing SAS
+
+You have several options for accessing SAS for learning and
+assignments.  All examples shown in class will use SAS in batch mode as that is the way I 
+primarily use it. 
+
+### Batch Mode
+
+You can use SAS in batch mode on the scs servers:
+
+```bash
+ssh luigi.dsc.umich.edu
+sas Example0.SAS -log Example0.log
+```
+
+Several versions of SAS are also available on Flux (`module load SAS`).
+
+### Graphical User Interfaces
+
+SAS offers a free ["University Edition"](https://www.sas.com/en_us/software/university-edition.html) for academic use. 
+
+You can also access SAS using [midesktop](https://midesktop.umich.edu/portal/webclient/index.html#/) through the UM computing service.
+You will need to figure out the details yourself if you choose this route.
+
+## Resources
+
+ + SAS offers an extensive set of free [trainings](http://support.sas.com/training/) through their website.
+
+## Examples 
+
+You can download all of the examples and data shown below as a tar ball from [www-personal.jbhender.umich.edu/sas_examples.tgz](www-personal.jbhender.umich.edu/sas_examples.tgz).
+
+From the SCS servers, you can also copy this directly from my public AFS space:
+
+```bash
+cp //afs/umich.edu/user/j/b/jbhender/Public/html/sas_examples.tgz ~/
+```
+
+To extract the files from the archive use:
+
+```
+tar xvfz sas_examples.tgz
+```
+
+This will create a folder 'SAS' so be sure you do not already have a folder
+of that name in the directory you extract to.
+
+### Writing A Basic SAS program
+
+This [video](http://video.sas.com/detail/videos/how-to-tutorials/video/4573016765001/writing-a-basic-sas-program?autoStart=true) explains the basics of a SAS program and how to write one using SAS studio.
+
+Here are some key points to keep in mind:
+
+  + Most SAS programs are composed of "data" and "proc" steps.
+  + SAS statements are delimited by a semicolon ";".
+  + A "run;" statement tells SAS to execute a block of code.
+  + After code is run, a log file contains information about its execution 
+  including any errors.  R users may wish to think of this as containing "messages" and "warnings".
+  + The role of the "data output" window in the video is played by a "listing" (.lst) file
+   in batch mode.
+  + SAS statements are not case sensitive.
+  + SAS is primarily a _declarative_ language.
+
+### Importing Data
+
+This script uses `proc import` to import a comma delimited 
+copy of the [RECS](http://www.eia.gov/consumption/residential/data/2009/index.cfm?view=microdata) 
+data. We then use `proc print` and `proc contents` to explore it.
+
+[example0.SAS](./SAS/examples/example0.SAS); [example0.lst](./SAS/out/example0.lst)
+
+### Libraries
+
+SAS uses a binary format `sas7bdat` for native data storage on disk. SAS also
+uses the concept of 'libraries' similar to how schema are used in SQL. The default
+library is `WORK` set up in a temporary directory.  You create _handles_ for libraries
+using a `libname` statement.
+
+In example 1, we create a library handle `mylib` and save the RECS data to it
+after importing.
+
+[example1.SAS](./SAS/examples/example1.SAS)
+
+In example 2, we create a data table `recs` referencing the RECS data in 
+sas7bdat format downloaded from the EIA site. Note the additional metadata
+it contains relative to the version imported from CSV.
+
+[example2.SAS](./SAS/examples/example2.SAS); [example2.lst](./SAS/out/example2.lst)
+
+### Subsetting data
+
+In example 3 we create rural and urban subsets of the RECS data an save them
+to our library using "`data`" steps.
+
+[example3.SAS](./SAS/examples/example3.SAS)
+
+### Descriptive Statistics
+
+There are several procedures useful for obtaining descriptive statistics.
+
+In example 4 we explore `proc tabulate`. 
+
+[example4.SAS](./SAS/examples/example4.SAS); [example4.lst](./SAS/out/example4.lst)
+
+In example 5 we explore `proc means`,
+`proc summary` and `proc freq`.  
+
+[example5.SAS](./SAS/examples/example5.SAS); [example5.lst](./SAS/out/example5.lst)
+
+### Split, apply, combine
+
+An important difference between `proc means` and
+`proc summary` is that the former computes output to be printed to the listing file while the
+latter constructs a table of summary statistics. The latter is thus useful for implementing
+the "split, apply, combine" pattern.  We revisit the "roof types" problem in example 6.
+
+[example6.SAS](./SAS/examples/example6.SAS); [example6.lst](./SAS/out/example6.lst)
+
+[Stats 506 Homepage](./index.html)
