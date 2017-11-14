@@ -52,7 +52,7 @@ You will need to figure out the details yourself if you choose this route.
 
 ## Examples 
 
-You can download all of the examples and data shown below as a tar ball from [www-personal.jbhender.umich.edu/sas_examples.tgz](www-personal.jbhender.umich.edu/sas_examples.tgz).
+You can download all of the examples and data shown below as a tar ball from [www-personal.umich.edu/~jbhender/sas_examples.tgz](www-personal.umich.edu/~jbhender/sas_examples.tgz).
 
 From the SCS servers, you can also copy this directly from my public AFS space:
 
