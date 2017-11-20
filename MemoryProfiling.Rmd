@@ -1,0 +1,324 @@
+---
+title: "Memory and Memory Profiling in R"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## Resources
+
+The material in this lesson is largely based on:
+
+  + Chapter 18 of _Advanced R_
+  
+  + Chapter 14 of _The Art of R Programming_
+
+
+## General Information on Memory 
+
+You likely already know that binary data is composed of bits (0 or 1). You may
+also know that computer systems generally use [bytes](https://en.wikipedia.org/wiki/Byte)
+containing multiple bits as the basic addressable unit.  
+0In modern computer architectures a byte usually consists of 8 bits. When describing
+a [data storage]((https://en.wikipedia.org/wiki/File_size)
+) quantity in terms of bytes we traditionally use prefixes based on
+powers of 2, so that 1KB $ = 2^{10} = 1024$ bytes, a MB = $2^{20}$ = 1,048,576
+bytes etc. 
+
+You may also want to review the section 'Storage' from Professor 
+Shedden's [notes](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/computer_architecture/).
+
+An understanding of [virtual memory](https://en.wikipedia.org/wiki/Virtual_memory), segmentation, and caching may be of use at some point in the future but is not required for this course.
+
+### Understanding memory usage in R
+
+A useful tool for exploring memory management in R is Hadley Wickham's [`pryr`](https://github.com/hadley/pryr)
+package.  It contains a function `pryr::object_size` similar to `object.size` but
+with these differences:
+
+  + It accounts for memory shared by elements in an object 
+  + It attempts to account for memory from environments associated with an 
+    object.
+
+Here are some examples.
+
+```{r, messages=FALSE}
+library(pryr); library(ggplot2)
+
+nyc14 = data.table::fread('https://github.com/arunsrinivasan/flights/wiki/NYCflights14/flights14.csv')
+
+# Simple size of objects
+object.size(1:10)
+pryr::object_size(1:10)
+
+object.size(nyc14)
+print(object.size(nyc14), units='Mb')
+object_size(nyc14)
+compare_size(nyc14)
+
+## How to understand the difference? 
+# Example from object_size documentation.
+x = 1:1e5
+z = list(x, x, x)
+compare_size(z)
+
+object_size(x)
+object_size(z)
+object_size(x,z)
+
+## Recall R has "copy-on-modify semantics"
+tracemem(x)
+tracemem(z)
+
+z[[2]] = -x
+tracemem(z[[1]])
+tracemem(z[[2]])
+tracemem(z[[3]])
+
+object_size(z)
+object_size(x,z)
+```
+
+Here is an example of how environments impact `object_size`.
+
+```{r}
+f <- function(){
+  x <- 1:1e5
+  a ~ b
+}
+compare_size(f())
+
+g <- function(){
+  a ~ b
+}
+compare_size(g())
+
+h <- function(){
+  x <- 1:1e5
+  x~y
+}
+compare_size(h())
+object_size(a~b)
+object_size(1:1e5)
+```
+
+Two other useful functions from `pryr` are `mem_used()` which adds up
+the total size of all objects in memory and `mem_change()` which tracks changes
+to this quantity. When working with `mem_change()` ignore anything ~2KB or smaller
+as this mostly is impacted by changes to .Rhistory.  
+
+```{r}
+ls()
+mem_used()
+mem_change({new_vec = 1:1e6})
+
+# Negatives represent memory freed
+mem_change(rm(new_vec))
+mem_change(rm(nyc14))
+```
+
+
+### Vector size
+
+This example is taken from section 18.1 of _Advanced R_.  
+
+Here we exam the size, in bytes, of R vectors of class `r class(seq_len(0))`
+with lengths 0 through 100.  
+
+```{r}
+sizes = sapply(0:100, function(n) object_size(seq_len(n)))
+plot(0:100, sizes, xlab='Vector Length', ylab='Size (B)', type='s')
+abline(h=40,lty='dashed')
+sizes[1:20]
+```
+
+It turns out that empty vectors of any type occupy 40 bytes of memory,
+```{r}
+sapply(c('numeric', 'logical', 'integer', 'raw', 'list'),
+       function(x) object.size(vector(mode=x, length=0))
+       )
+```
+
+These bytes are used to store the following components:
+
+ 1. (4 bytes) Metadata including the type and some other information 
+ 2. (16 = 2*8 bytes) Pointers to the next and previous object in memory.
+ 3. (8 bytes) A pointer to the attributes. 
+ 4. (4 bytes) Vector length
+ 5. (4 bytes) "True length" used primarily for environments.
+
+The additional 4 bytes are used for padding to ensure each of these elements
+starts on an 8 byte boundary. These boundaries are generally required by 64 bit
+CPU architectures, see [here](http://www.catb.org/esr/structure-packing).
+
+How do we interpret the remaining steps in the graph? First, consider the 
+regular steps for the later vectors:
+
+```{r}
+diff(sizes[41:45])
+```
+
+For vectors beyond 128 bytes in size (excluding overhead) R requests memory
+from the OS in 8 byte chunks using the C function `malloc()`. 
+Since an integer occupies 4 bytes, the memory increses every other integer.  
+
+```{r}
+## Adjusted sizes
+plot(0:100, sizes-40, xlab='Vector Length', ylab='Size (B) less overhead', type='s')
+abline(h=0,lty='dashed')
+abline(v=c(41,43), lty='dotted')
+abline(h={8*c(1,2,4,6,8,16)}, col='blue', lty='dotted')
+```
+
+For vectors, smaller than 128 bytes in size R performs its own memory management
+using something called the 'small vector pool' to avoid unnecessary 
+requests to the OS for RAM. For simplicity, it only allocates specific multiples
+of 8 bytes as shown in the plot.  Note that these value correspond to the *data*
+held by the vector and *not* the 40 B of overhead.  This small vector pool is
+expaneded by a *page* in increments of 2000 bytes as needed.
+
+#### Exercises
+**Question 1:** What vector lengths are shown by the vertical lines in the plot below? 
+Where do the horizontal lines intersect the y-axis?
+
+```{r, echo=FALSE}
+plot(0:100, sizes, xlab='Vector Length', ylab='Size (B)', type='s')
+abline(v=c(17,33), lty='dotdash',col='magenta')
+abline(h=c(64,128)+40, lty='dashed',col='darkgreen')
+```
+
+**Question 2:**  Recall that an integer type is stored using 4 bytes
+while a numeric type uses 8 bytes.  What are the values of `a` and `b` after running the R code 
+below? 
+
+```{r}
+a = object_size(1:15)
+b = object_size(as.numeric(1:15))
+```
+
+
+**Question 3:** What are the approximate values of mem_a - mem_c below? 
+```{r}
+x = 1:1e6
+z = list(x, x, x)
+object_size(x, z)
+mem_a = object_size(z) - object_size(x)                   # Exact in bytes
+mem_b = mem_change(z[[1]] <- rep(2L, 1e6))                # Approximate in Mb
+mem_c = mem_change(z[[2]][sample(1:1e6, 1)] <-  runif(1)) # Approximate in Mb
+```
+
+## Profiling with `Rprof` and `Profmem`
+
+### Example: Screening Correlation Coefficients
+
+[Recall](./MonteCarloSimulation.html)
+our comparisons of various R implementations for screening
+correlation coefficients for 
+a large number of possible predictors in the rows of a matrix `xmat` with
+a single outcome `y`. Here we will add a Fisher transform as well and return
+just the indices where the sample coefficients is nominally significant. 
+
+```{r}
+# Example data
+n = 30
+m = 10000
+yvec = rnorm(n)
+xmat = outer(array(1, m), yvec)
+rmat = matrix(runif(m, -.8, .8), m, n)
+xmat = rmat*xmat + sqrt(1 - rmat^2)*rnorm(n * m)
+
+# Functions to compare
+cor_screen_1 = function(yvec, xmat){
+  r1 = NULL
+  for (i in 1:m) {
+    r1[i] = cor(xmat[i, ], yvec)
+  }
+  z = {.5*{log(1+r1) - log(1-r1)}}*sqrt(length(yvec)-3)
+  
+  which(abs(z)>qnorm(.975))
+}
+
+cor_screen_2 = function(yvec, xmat){
+  r2 = apply(xmat, 1, function(v) cor(v, yvec))
+  z = {.5*{log(1+r2) - log(1-r2)}}*sqrt(length(yvec)-3)
+
+  which(abs(z)>qnorm(.975))
+}
+
+
+cor_screen_3 = function(yvec, xmat){
+  rmn = rowMeans(xmat)
+  xmat_c = xmat - outer(rmn, array(1, n)) 
+  rsd = apply(xmat, 1, sd)
+  xmat_s = xmat_c / outer(rsd, array(1, n))
+  yvec_s = {yvec - mean(yvec)} / sd(yvec)
+  r3 = xmat_s %*% yvec_s / {n - 1}
+  
+  z = as.vector({.5*{log(1+r3) - log(1-r3)}} * sqrt(length(yvec)-3))
+  
+  which(abs(z)>qnorm(.975))
+}
+
+cor_screen_4 = function(yvec, xmat){
+  rmn = rowMeans(xmat)
+  xmat_c = xmat - rmn
+  rvar = rowSums(xmat_c^2) / {dim(xmat)[2] - 1}
+  rsd = sqrt(rvar)
+  xmat_s = xmat_c / rsd
+  yvec_s = {yvec - mean(yvec)} / sd(yvec)
+  r4 = xmat_s %*% yvec_s / {n - 1}
+  
+  z = as.vector({.5*{log(1+r4) - log(1-r4)}} * sqrt(length(yvec)-3))
+
+  which(abs(z)>qnorm(.975))
+}
+
+# Check that all are equal
+s = list(cor_screen_1(yvec, xmat), cor_screen_2(yvec, xmat),
+         cor_screen_3(yvec, xmat), cor_screen_4(yvec, xmat)
+         )
+sapply(2:4, function(i) setdiff(s[[1]],s[[i]]))
+```
+
+Here is an example of profling `cor_screen_1` for speed with `Rprof()`.
+
+```{r}
+Rprof()
+ invisible(cor_screen_1(yvec, xmat))
+Rprof(NULL)
+summaryRprof()
+```
+
+
+Here is an example of profling `cor_screen_1` for speed with `Rprof()`.
+
+```{r}
+Rprofmem()
+ invisible(cor_screen_1(yvec, xmat))
+Rprofmem(NULL)
+summaryRprof()
+```
+
+
+### Using `profviz` to visualize profiling
+
+The [`profviz`](https://rstudio.github.io/profvis/) package is built on `Rprof()` but aims to provide
+more useful summary information.
+
+```{r}
+#install.packages('profvis')
+library(profvis)
+profvis(invisible(cor_screen_1(yvec, xmat)))
+```
+
+
+
