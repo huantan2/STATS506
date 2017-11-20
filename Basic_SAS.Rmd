@@ -93,6 +93,7 @@ data. We then use `proc print` and `proc contents` to explore it.
 
 [example0.SAS](./SAS/examples/example0.SAS); [example0.lst](./SAS/out/example0.lst)
 
+
 ### Libraries
 
 SAS uses a binary format `sas7bdat` for native data storage on disk. SAS also
@@ -139,5 +140,68 @@ latter constructs a table of summary statistics. The latter is thus useful for i
 the "split, apply, combine" pattern.  We revisit the "roof types" problem in example 6.
 
 [example6.SAS](./SAS/examples/example6.SAS); [example6.lst](./SAS/out/example6.lst)
+
+## Day 2 Examples
+
+You can download all of the examples below as a tar archive from
+
+You can download all of the examples and data shown below as a tar ball from [www-personal.umich.edu/~jbhender/sas_day2.tgz](https://www-personal.umich.edu/~jbhender/sas_day2.tgz).
+
+### Importing compressed files
+
+Compressed data can be read using a `filename` statement with a pipe as in
+this example.
+
+[example7.SAS](./SAS/examples/example7.SAS)
+
+### Reading data with dates and text formats
+
+In example 7 above, we used "modified list input" to import (compressed)
+delmited data.  The colon ":" is used to separate variable names from *optional*
+formats. Note that the formats end in a period "." as before.
+
+### Importing fixed width files
+
+A fixed width file uses location rather than delimiters to separate variables
+into columns.  Fixed-width files can be read into SAS using an `infile` statement
+followed by an `input` statement to specify columns and variable names.
+
+In the example below we use "column" input to import weather station data in
+fixed width format.
+
+[example8.SAS](./SAS/examples/example8.SAS)
+
+### Merging Data
+
+Please review Professor Shedden's example. You will need this
+for the problem set.
+
+### Data Step Programming
+
+Complex analyses can be done using multiple data steps.
+In the example below, we use the RECS data to find the 
+percent of single family homes within each census region
+more than one standard deviation above the mean electrical usage.
+
+[example9.SAS](./SAS/examples/example9.SAS)
+
+
+### Using SQL in SAS
+
+SAS has a procedure `proc sql` which allows you to form SQL like
+queries within SAS.  This can be more efficient than similar programs constructed
+using multiple proc and data steps. 
+
+The example below from Professor Shedden's notes uses `proc sql` to find
+all single family homes with 'heating degree days' above 2000.
+
+[example10.SAS](./SAS/examples/example10.SAS)
+
+In the next example, we use `proc sql` to repeat the analysis of
+finding the "States" with the highest proportion of wood-shingled roofs.
+
+[example11.SAS](./SAS/examples/example11.SAS) 
+
+Exercise: Use `proc sql` to carry out the analysis from example 9.  [Solution]((./SAS/examples/example9.SAS) )
 
 [Stats 506 Homepage](./index.html)
