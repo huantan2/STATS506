@@ -52,7 +52,7 @@ output:
   
   [Batch Computing and Job Scheduling](./BatchComputing.html)
   
-  [Problem Set 3](./ProblemSet3.html)
+  [Problem Set 3](./ProblemSet3.html), [Solutions](PS3_Solutions.html)
   
   [R’s data.table package](./data.table.html)
   
@@ -61,6 +61,10 @@ output:
   [Basic SQL](./Intro_to_SQL.html)
 
   [Basic SAS](./Basic_SAS.html)
+
+  [Problem Set 4](./ProblemSet4.html)
+
+  [Memory in R](./MemoryProfiling.html)
 
   </div>
   <div>

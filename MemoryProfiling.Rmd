@@ -31,7 +31,7 @@ containing multiple bits as the basic addressable unit.
 0In modern computer architectures a byte usually consists of 8 bits. When describing
 a [data storage]((https://en.wikipedia.org/wiki/File_size)
 ) quantity in terms of bytes we traditionally use prefixes based on
-powers of 2, so that 1KB $ = 2^{10} = 1024$ bytes, a MB = $2^{20}$ = 1,048,576
+powers of 2, so that 1KB $= 2^{10} (1024)$ bytes, a MB = $2^{20}$ (1,048,576)
 bytes etc. 
 
 You may also want to review the section 'Storage' from Professor 
@@ -74,19 +74,39 @@ compare_size(z)
 object_size(x)
 object_size(z)
 object_size(x,z)
+```
 
+To understand this last example, we need to recall R's "copy on modify semantics"
+discussed during the lessons on `data.table`. Here we will use the function 
+`tracemem()` to get the memory address of an object.  When this changes we
+can be sure that an object has been copied. Similar functionality is available
+via `pryr::address()` or `data.table::address()`..
+
+```{r, message=FALSE}
 ## Recall R has "copy-on-modify semantics"
+invisible(tracingState(on=FALSE))
 tracemem(x)
 tracemem(z)
 
-z[[2]] = -x
-tracemem(z[[1]])
-tracemem(z[[2]])
-tracemem(z[[3]])
+## pryr::address doesn't work well with knitr, but would be the 
+## same interactively
+pryr::address(z)
+data.table::address(z)
+inspect(z)
 
+# Modify z, tracemem causes message to print
+z[[2]] = -x
+
+sapply(z, tracemem)
+
+# Having changed z[[2]], the object is larger. 
 object_size(z)
 object_size(x,z)
 ```
+
+Be aware that memory profiling is a compile time option, meaning it may 
+not be available on all instances of R.  By default, the mac OS and Windows
+builds distributed through CRAN have memory profiling enabled. 
 
 Here is an example of how environments impact `object_size`.
 
@@ -125,7 +145,6 @@ mem_change({new_vec = 1:1e6})
 mem_change(rm(new_vec))
 mem_change(rm(nyc14))
 ```
-
 
 ### Vector size
 
@@ -169,7 +188,7 @@ diff(sizes[41:45])
 
 For vectors beyond 128 bytes in size (excluding overhead) R requests memory
 from the OS in 8 byte chunks using the C function `malloc()`. 
-Since an integer occupies 4 bytes, the memory increses every other integer.  
+Since an integer occupies 4 bytes, the memory increases every other integer.  
 
 ```{r}
 ## Adjusted sizes
@@ -184,7 +203,7 @@ using something called the 'small vector pool' to avoid unnecessary
 requests to the OS for RAM. For simplicity, it only allocates specific multiples
 of 8 bytes as shown in the plot.  Note that these value correspond to the *data*
 held by the vector and *not* the 40 B of overhead.  This small vector pool is
-expaneded by a *page* in increments of 2000 bytes as needed.
+expanded by a *page* in increments of 2000 bytes as needed.
 
 #### Exercises
 **Question 1:** What vector lengths are shown by the vertical lines in the plot below? 
@@ -216,7 +235,49 @@ mem_b = mem_change(z[[1]] <- rep(2L, 1e6))                # Approximate in Mb
 mem_c = mem_change(z[[2]][sample(1:1e6, 1)] <-  runif(1)) # Approximate in Mb
 ```
 
-## Profiling with `Rprof` and `Profmem`
+### Strings and factors
+
+We noted above that integers are stored using 4 bytes (32 bits) and doubles
+8 bytes (64 bits).  What about characters? According to the R 
+[documenation](https://cran.r-project.org/doc/manuals/r-devel/R-ints.html#The-CHARSXP-cache)
+on CRAN, R uses a global pool of strings and pointers to them in actual strings.
+
+```{r}
+# pointers to strings take 8 bytes each
+x = 'abc'
+x1e5 = rep(x,1e5)
+object_size(x)
+object_size(x1e5)
+object_size(x,x1e5)
+```
+
+The global pool stores both the encoding of each string and the actual bytes.
+
+In contrast, R objects of class `factor` are stored as integers encoding the levels
+which are in turn strings.  Since integers occupy only 4 bytes, if there are
+only a few levels the factor can have a smaller memory footprint.
+
+```{r}
+x = sample(1:3,1e5, replace=TRUE)
+object_size(x) - 40
+
+x_char = LETTERS[x]
+object_size(x_char) - 40
+
+x_factor = as.factor(x_char) 
+object_size(x_factor) - 40
+```
+
+In contrast, if there are many levels the factor  may have a larger footprint.
+Read more from `data.table` author Matt Dowle [here](https://stackoverflow.com/questions/34862856/are-factors-stored-more-efficiently-in-data-table-than-characters).
+
+
+## Profiling with `Rprof` and `profviz`
+
+The `Rprof()` function can be used to profile R code
+for both speed and memory usage by sampling.  This works by
+recording in a log every so often (by default .02 s) what functions
+are currently on the stack.  It will also 
 
 ### Example: Screening Correlation Coefficients
 
@@ -229,12 +290,18 @@ just the indices where the sample coefficients is nominally significant.
 
 ```{r}
 # Example data
-n = 30
-m = 10000
+n = 3e2
+m = 1e5
 yvec = rnorm(n)
 xmat = outer(array(1, m), yvec)
 rmat = matrix(runif(m, -.8, .8), m, n)
 xmat = rmat*xmat + sqrt(1 - rmat^2)*rnorm(n * m)
+
+object_size(xmat)
+object_size(yvec)
+
+# When memory is an issue, be sure to clean up when possible. 
+mem_change(rm(rmat))
 
 # Functions to compare
 cor_screen_1 = function(yvec, xmat){
@@ -289,27 +356,22 @@ s = list(cor_screen_1(yvec, xmat), cor_screen_2(yvec, xmat),
 sapply(2:4, function(i) setdiff(s[[1]],s[[i]]))
 ```
 
-Here is an example of profling `cor_screen_1` for speed with `Rprof()`.
+Here is an example of profiling `cor_screen_1` for speed with `Rprof()`.
 
 ```{r}
-Rprof()
+Rprof(memory.profiling = TRUE, interval=.002)
  invisible(cor_screen_1(yvec, xmat))
 Rprof(NULL)
-summaryRprof()
+summaryRprof(memory = 'both')
 ```
 
-
-Here is an example of profling `cor_screen_1` for speed with `Rprof()`.
-
+Here are two other options for the memory parameter.
 ```{r}
-Rprofmem()
- invisible(cor_screen_1(yvec, xmat))
-Rprofmem(NULL)
-summaryRprof()
+#summaryRprof(memory = 'tseries')
+summaryRprof(memory = 'stats')
 ```
 
-
-### Using `profviz` to visualize profiling
+### Using `profviz` to visualize profiling information
 
 The [`profviz`](https://rstudio.github.io/profvis/) package is built on `Rprof()` but aims to provide
 more useful summary information.
@@ -317,7 +379,10 @@ more useful summary information.
 ```{r}
 #install.packages('profvis')
 library(profvis)
-profvis(invisible(cor_screen_1(yvec, xmat)))
+profvis(cor_screen_1(yvec, xmat), interval = .005)
+profvis(cor_screen_2(yvec, xmat), interval = .005)
+profvis(cor_screen_3(yvec, xmat), interval = .005)
+profvis(cor_screen_4(yvec, xmat), interval = .005)
 ```
 
 
