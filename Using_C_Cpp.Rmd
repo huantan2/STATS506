@@ -1,0 +1,153 @@
+---
+title: "Using C/C++ in R"
+author: "Statistics 506, Fall 2017"
+date: ""
+output: 
+  html_document:      
+    theme: journal
+    highlight: pygments
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Resources
+ 
+ + R's C interface
+  + Chapter 15 of _The Art of R Programming_
+  + Chapter 20 of _Advanced R_
+  + "System and foreign language interfaces", [Section 5](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#System-and-foreign-language-interfaces)
+  of _Writing R Extensions_
+
+ + Learning C
+  
+ + Rcpp
+  + Dirk's Vignettes
+  + Gallery
+
+ + Learning C++
+
+## C and C++ Basics
+
+  These are *compiled* languages and hence a compiler is needed to transform
+ a human interpretable program into a machine executable one.  The most commonly
+ use compiler is [gcc](https://gcc.gnu.org/).  This is already installed on most
+ linux distributions, including all the servers we have commonly used in this course.
+ If you wish to compile C/C++ programs on your personal computer, you will need 
+ to install a compiler.  
+ Mac users should download [Xcode](https://developer.apple.com/xcode/) from Apple's app store.
+ Windows users should investigate [Rtools](https://cran.r-project.org/bin/windows/Rtools/) or [Cygwin](https://www.cygwin.com/).
+
+There are three important differences from R 
+ + Vectors are indexed from zero.
+ + Arrays are stored in *row-major* order.
+ + Statements are delimited using semicolons (";")
+ + Loops have minimal overhead and hence generally do *not* need to be avoided.
+
+## Calling C functions from R
+
+We can call a function written in C from R using `.C()` or `.call()`.  We begin
+with `.C` as it is simpler.  
+
+### Using `.C()`
+The basic recipe for using `.C` is as follows:
+  
+  + Write a function in `.C` that returns `void` and stores the desired result
+  in one or more arguments expressly created for this purpose. Your function
+  should have a `C_` prefix.
+  
+  + Compile your function into a shared library accessible to R using this command:
+  `R CMD SHLIB my_func.c` with `my_func.c` replaced by your c program.
+  
+  + Within an active R session, link to the shared library using `dyn.load("my_func.so")`.
+  
+  + Write an R wrapper to call your C function using `.C` with the following syntax:
+    `.C("C_my_func", arg1, arg2)`.  The reason to use an R wrapper is to ensure that
+    the arguments passed are of the correct size and type in order to avoid potentially
+    fatal errors.
+    
+ We will look at some examples available [here]().
+ 
+### Using `.Call()`
+
+We can use `.Call()` to create and modify R level objects
+directly using functions in C.  R level objects are of type `SEXP` for 
+"S-expression". These types are defined in the header file `Rinternals.h` which
+should be included in all C functions to be called with `.Call()`.
+
+When we create R level objects, we must protect them from garbage colleciton
+using `PROTECT` or a similar function.  We later `UNPROTECT` them to allow
+the memory to be reallocated. 
+
+Recall that scalars in R are length one vectors. Consequently, the must be
+coerced to C type scalars to be uses as such.  This can be done using the
+C functions `as*`: `asLogical`, `asInteger`, `asReal`, `CHAR(asChar())`. 
+
+Here is a simple example using the `inline::cfunction`.
+```{r}
+seqn = cfunction(signature(n_="integer", start_="integer"), 
+ body="
+ int i, n = asInteger(n_), start=asInteger(start_);
+ SEXP out = PROTECT(allocVector(INTSXP, n));
+ for(i=0; i<n; ++i){
+   INTEGER(out)[i]=i+start;
+ }
+ UNPROTECT(1);
+ return out;
+")
+seqn(8, 3)
+```
+
+```{r}
+fib = cfunction(c(n="integer"), body=
+  "
+  SEXP out = PROTECT(allocVector(INTSXP, n));
+
+  out[0]=1;
+  out[1]=1;
+
+  for(i=2; i<n; i++)
+    {
+     out[i] = out[i-2] + out[i-1];
+    }
+
+  UNPROTECT(1);
+  return out;
+  ")
+```
+
+### Modifying inputs
+Be careful about modifying input arguments without duplicating first as other
+R objects may point to the same location in memory owing to "copy-on-modify" semantics.  
+Here is a quick example from p. 441 of _Advanced R_ using the "inline" package.
+
+```{r}
+add_three = cfunction(c(x="numeric"),
+  "
+   REAL(x)[0] = REAL(x)[0] + 3;
+   return x; 
+  ")
+y <- x <- 1
+add_three(x)
+x
+y
+```
+
+Here is a corrected version in which the argument is duplicated rather
+than modified in place. 
+```{r}
+add_3 = cfunction(c(x_="numeric"),
+  "
+   SEXP x = PROTECT(duplicate(x_));
+   REAL(x)[0] = REAL(x)[0] + 3;
+   UNPROTECT(1);
+   return x; 
+  ")
+y <- x <- 1
+add_3(x)
+x
+y
+
+```
+
