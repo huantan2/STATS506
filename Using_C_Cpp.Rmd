@@ -15,35 +15,59 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Resources
  
  + R's C interface
-  + Chapter 15 of _The Art of R Programming_
-  + Chapter 20 of _Advanced R_
-  + "System and foreign language interfaces", [Section 5](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#System-and-foreign-language-interfaces)
+    + Chapter 15 of _The Art of R Programming_
+    + Chapter 20 of _Advanced R_
+    + "System and foreign language interfaces", [Section 5](https://cran.r-project.org/doc/manuals/r-release/R-exts.html#System-and-foreign-language-interfaces)
   of _Writing R Extensions_
 
  + Learning C
+    - [C Tutorial](https://www.tutorialspoint.com/cprogramming/)
   
  + Rcpp
-  + Dirk's Vignettes
-  + Gallery
+    - [rcpp.org](http://rcpp.org)
+    - [Gallery](http://gallery.rcpp.org)
 
  + Learning C++
+     - [Tutorial](http://www.cplusplus.com/doc/tutorial/)
 
 ## C and C++ Basics
 
   These are *compiled* languages and hence a compiler is needed to transform
- a human interpretable program into a machine executable one.  The most commonly
+ a human interpret able program into a machine executable one.  The most commonly
  use compiler is [gcc](https://gcc.gnu.org/).  This is already installed on most
- linux distributions, including all the servers we have commonly used in this course.
+ Linux distributions, including all the servers we have commonly used in this course.
  If you wish to compile C/C++ programs on your personal computer, you will need 
  to install a compiler.  
  Mac users should download [Xcode](https://developer.apple.com/xcode/) from Apple's app store.
  Windows users should investigate [Rtools](https://cran.r-project.org/bin/windows/Rtools/) or [Cygwin](https://www.cygwin.com/).
 
 There are three important differences from R 
- + Vectors are indexed from zero.
- + Arrays are stored in *row-major* order.
- + Statements are delimited using semicolons (";")
- + Loops have minimal overhead and hence generally do *not* need to be avoided.
+
+  + Variables and functions need to be declared before use.
+  + Arrays are indexed from zero.
+  + Arrays are stored in *row-major* order.
+  + Statements are delimited using semicolons ";".
+  + Loops have minimal overhead and hence generally do *not* need to be avoided.
+
+### C Basics
+
+We will review the following topics from [C Tutorial](https://www.tutorialspoint.com/cprogramming/):
+
+  + Program Structure
+  + Basic Syntax
+  + Data types (Integer and Floating Point Types)
+  + Variables 
+  + Operators (Arithmetic, Relational, Logical and Assignment)
+  + Loops
+  + Arrays
+  + Pointers
+  + Type Casting
+
+We will not review these as they work very much like in R:
+
+  + Decision Making
+
+The remaining sections are mostly beyond the scope of what we will discuss here.
 
 ## Calling C functions from R
 
@@ -51,6 +75,7 @@ We can call a function written in C from R using `.C()` or `.call()`.  We begin
 with `.C` as it is simpler.  
 
 ### Using `.C()`
+
 The basic recipe for using `.C` is as follows:
   
   + Write a function in `.C` that returns `void` and stores the desired result
@@ -66,8 +91,14 @@ The basic recipe for using `.C` is as follows:
     `.C("C_my_func", arg1, arg2)`.  The reason to use an R wrapper is to ensure that
     the arguments passed are of the correct size and type in order to avoid potentially
     fatal errors.
+
+ The middle two steps can be avoided by including these functions into an R
+ package.  We will discuss this briefly when turning to C++ and Rcpp.
+
+ A conceptual key to understanding how `.C` works is realizing that function arguments
+ are passed as *pointers* to objects in memory rather than by value.  
     
- We will look at some examples available [here]().
+ We will look at some examples of C coding available [here](./C_ex.tgz).
  
 ### Using `.Call()`
 
@@ -76,7 +107,7 @@ directly using functions in C.  R level objects are of type `SEXP` for
 "S-expression". These types are defined in the header file `Rinternals.h` which
 should be included in all C functions to be called with `.Call()`.
 
-When we create R level objects, we must protect them from garbage colleciton
+When we create R level objects, we must protect them from garbage collection
 using `PROTECT` or a similar function.  We later `UNPROTECT` them to allow
 the memory to be reallocated. 
 
@@ -85,7 +116,8 @@ coerced to C type scalars to be uses as such.  This can be done using the
 C functions `as*`: `asLogical`, `asInteger`, `asReal`, `CHAR(asChar())`. 
 
 Here is a simple example using the `inline::cfunction`.
-```{r}
+```{r seqn}
+library(inline)
 seqn = cfunction(signature(n_="integer", start_="integer"), 
  body="
  int i, n = asInteger(n_), start=asInteger(start_);
@@ -99,22 +131,29 @@ seqn = cfunction(signature(n_="integer", start_="integer"),
 seqn(8, 3)
 ```
 
-```{r}
-fib = cfunction(c(n="integer"), body=
+```{r fib}
+fib = cfunction(c(n_="integer"), body=
   "
+  /* Declaratations */
+  int n = asInteger(n_);
   SEXP out = PROTECT(allocVector(INTSXP, n));
 
-  out[0]=1;
-  out[1]=1;
-
-  for(i=2; i<n; i++)
+  /* Function Body */
+  INTEGER(out)[0] = 1;
+  if(n > 1)  INTEGER(out)[1]=1;
+  if(n > 2)
     {
-     out[i] = out[i-2] + out[i-1];
+      for(int i=2; i<n; i++)
+        {
+        INTEGER(out)[i] = INTEGER(out)[i-2] + INTEGER(out)[i-1];
+        }
     }
 
+  /* Clean up and return */
   UNPROTECT(1);
   return out;
   ")
+fib(10)
 ```
 
 ### Modifying inputs
@@ -122,7 +161,7 @@ Be careful about modifying input arguments without duplicating first as other
 R objects may point to the same location in memory owing to "copy-on-modify" semantics.  
 Here is a quick example from p. 441 of _Advanced R_ using the "inline" package.
 
-```{r}
+```{r add_three}
 add_three = cfunction(c(x="numeric"),
   "
    REAL(x)[0] = REAL(x)[0] + 3;
@@ -136,7 +175,7 @@ y
 
 Here is a corrected version in which the argument is duplicated rather
 than modified in place. 
-```{r}
+```{r add3}
 add_3 = cfunction(c(x_="numeric"),
   "
    SEXP x = PROTECT(duplicate(x_));
@@ -148,6 +187,5 @@ y <- x <- 1
 add_3(x)
 x
 y
-
 ```
 

@@ -66,6 +66,8 @@ output:
 
   [Memory in R](./MemoryProfiling.html)
 
+  [Using C/C++ from R](./Using_C_Cpp.html)
+
   </div>
   <div>
   </div>
