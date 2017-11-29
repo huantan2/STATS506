@@ -10,6 +10,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(Rcpp)
 ```
 
 ## Resources
@@ -26,9 +27,12 @@ knitr::opts_chunk$set(echo = TRUE)
  + Rcpp
     - [rcpp.org](http://rcpp.org)
     - [Gallery](http://gallery.rcpp.org)
-
+    - [Chapter 19](http://adv-r.had.co.nz/Rcpp.html) of _Advanced R_
+    - [Rcpp Quick Reference](http://dirk.eddelbuettel.com/code/rcpp/Rcpp-quickref.pdf)
+    
  + Learning C++
-     - [Tutorial](http://www.cplusplus.com/doc/tutorial/)
+     - [Tutorial](http://www.cplusplus.com/doc/tutorial/) from cplusplus.com
+     - [Tutorial](https://www.tutorialspoint.com/cplusplus/) from tutorialspoint.com
 
 ## C and C++ Basics
 
@@ -188,4 +192,163 @@ add_3(x)
 x
 y
 ```
+
+## Interfacing with C++ via Rcpp
+
+The  [Rcpp](http://rcpp.org) package greatly simplifies the process of
+exposing functions written in C++ to R.  
+
+### Using sourceCpp {.tabset}
+
+We can use the function `sourceCpp` to read a function written in C++ into
+R interactively.  The function takes care of the compilation using `R CMD SHLIB` 
+and automatically generates an R wrapper for the underlying function.  The shared
+library and other files will be written to the directory specified by `cacheDir`
+which defaults to a temporary directory for automated clean up.
+
+To use a C++ function via sourceCpp:
+
+  1. Write a your C++ function in a file with extension `.cpp`.
+  2. In the source file, be sure to `#include <Rcpp.h>`.
+  3. Designate functions exposed to R using the tag `// [[Rcpp::export]]`.
+  4. Compile and source your function using `sourceCpp()` and a link to the file.
+
+Here are some minimal examples based on generating Fibonacci numbers. You
+can download the source code [here]().
+
+#### FibCpp0
+
+In this first example, we use the STL ("standard template library") for
+vector classes.  Notice the use of `::` to specify the namespace just like
+with R packages. Also pay attention to how we can handle errors using `throw`
+and an error class from the STL.
+
+```cpp
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+std::vector<int> FibCpp0(int n)
+{
+  // Error checking
+  if(n <= 0)
+    {
+      throw std::range_error("n must be a positive integer");
+    }
+
+  // Allocate memory
+  std::vector<int> out(n);
+  out[0]=1;
+
+  // Compute additional terms
+  if(n > 0)
+    {
+      out[1]=1;
+      int i;
+      for(i=2; i<n; i++)
+        {
+          out[i] = out[i-1] + out[i-2];
+        }
+    }
+
+  return out;
+}
+```
+
+```{r,error=TRUE}
+#library(Rcpp)
+sourceCpp('~/Stats506/FibCPP0.cpp')
+tail(FibCpp0(30))
+tryCatch(FibCpp0(-1),outFile=stdout())
+```
+
+#### FibCpp1
+This is nearly identicaly to `FibCpp0` except we use the Rcpp class
+`IntegerVector` for vectors.  
+
+```cpp
+#include <Rcpp.h>
+
+// [[Rcpp::export]]
+Rcpp::IntegerVector FibCpp1(int n)
+{
+  // Error checking
+  if(n <= 0)
+    {
+      throw std::range_error("n must be a positive integer");
+    }
+
+  // Allocate memory
+  Rcpp::IntegerVector out(n);
+  out[0]=1;
+
+  // Compute additional terms
+  if(n > 0)
+    {
+      out[1]=1;
+      int i;
+      for(i=2; i<n; i++)
+        {
+          out[i] = out[i-1] + out[i-2];
+        }
+    }
+
+  return out;
+}
+```
+
+```{r}
+sourceCpp('~/Stats506/FibCPP1.cpp')
+FibCpp1(12)
+```
+
+#### FibCpp2
+The final Fibonacci example here makes two changes from the previous example:
+
+  1. We add the line `using namespace rcpp;` to avoid having to type the prefix
+  `Rcpp::` when referring to the Rcpp namespace.  This is much like using 
+  `library()` within R to add a package to the search path.
+ 
+  2. We show how to print to the R console from within the C++ function using 
+  `Rcout`.  This can be useful for manual debugging.
+
+```cpp
+#include <Rcpp.h>
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+IntegerVector FibCpp2(int n)
+{
+  // Error checking
+  if(n <= 0)
+    {
+      throw std::range_error("n must be a positive integer");
+    }
+
+  // Allocate memory
+  IntegerVector out(n);
+  out[0]=1;
+
+  Rcout << "Starting computations ... ";
+  // Compute additional terms
+  if(n > 0)
+    {
+      out[1]=1;
+      int i;
+      for(i=2; i<n; i++)
+        {
+          out[i] = out[i-1] + out[i-2];
+        }
+    }
+
+  Rcout << "done." << std::endl;
+  return out;
+}
+```
+
+```{r}
+sourceCpp('~/Stats506/FibCPP2.cpp')
+FibCpp2(10)
+```
+
+[Here]() is another simple example and an exercise. 
 
