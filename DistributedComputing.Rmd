@@ -1,21 +1,71 @@
 ---
 title: "Distributed Computing"
 author: "Statistics 506, Fall 2017"
-date: "1"
-output: html_document
+date: ""
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: styles.css
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Distributed Computing
+Distributed computing describes the use of many computing nodes to process
+large amounts of data in parallel. In contrast to parallel programming models
+discussed [previously]() the data itself is distributed in advance across compute
+nodes, usually redundantly. A cluster manager then distributes computational tasks among
+various worker nodes and aggregates the results.  
+
+Two prominent models for distributed computing are Hadoop and Spark.  Hadoop makes
+heavy use of disk storage for working with large data sets while Spark is more
+focused on computations performed in working memory (RAM).
+
+## MapReduce
+
+[MapReduce](https://en.wikipedia.org/wiki/MapReduce) refers to both a programming 
+model and associated implementations for distributed computing.  It resembles
+the familiar "split-apply-combine" pattern but is 
+designed for processing large amounts of distributed data in parallel.   
+
+As the name suggests, it includes both *map* and *reduce* steps.
+
+In a *map* step each element of a collection
+(think rows or subsets of data) is transformed, typically producing a 
+`<key, (value)>` pair.  
+
+A *reduce* step is used to aggregate the outputs from the map step sharing the same key.
+
+In most MapReduce implementations, there is also a *shuffle* step in which the outputs
+from the map step are reorganized by key.  This would typically involve communication over
+a network.
+
+This [diagram](https://developer.yahoo.com/hadoop/tutorial/module4.html#dataflow)
+illustrates this setup. 
+
+To make this concrete, suppose a large online retail company would like to compute its total
+sales and average sale price by state based on shipping address.  Its sales data, however,
+is not centrally organized into a database but distributed across a collection of databases
+determined by the location of the server farm that handled the order.  
+
+A MapReduce solution to this problem starts with an initial set of keys `k1` describing each of the databases.
+*Map* functions take each key in `k1` and return a set of new key value pairs,
+`<state, (n_sales, total_sales)>`. Here state represents the new key (`k2`).
+
+These new pairs are then *shuffled* so that all pairs with the same `k2` key (state)
+are collocated on a node. The *reduce* function aggregates these values as they arrive
+by summing `n_sales` and `total_sales`.
+
 ## Hadoop
 
-Hadoop is software with the goal of enabling processing for very large amounts of data by distributing both the data and the processing across many ("thousands") of servers.  
+Hadoop is software with the goal of enabling processing for very large amounts of data using MapReduce by distributing both the data and the processing across many ("thousands") of servers.  
 
 Here is the description from the hadoop manual (`man hadoop`):
 
-```
+```less
 DESCRIPTION
   Here's what makes Hadoop especially useful:
 
@@ -46,16 +96,24 @@ DESCRIPTION
            based on failures.
 ```
 
-Hadoop consists of two main components the HDFS file system and a resource manager called
+Hadoop consists of two main components: the HDFS file system and a resource manager called
 YARN.
 
 ### HDFS
 
-HDFS is an acronym for *Hadoop Distributed File System*.  The file system is 
+[HDFS](https://hadoop.apache.org/docs/r1.2.1/hdfs_design.html) is an acronym for *Hadoop Distributed File System* which is built in JAVA.  This is a distributed file
+system designed to be fault tolerant. If follows a "write-once-read-many" model which
+makes it difficult to modify files once written.  This is by design as it allows assumptions
+to be made about data and coherency to be maintained across replicate data sets.
 
-This file system is structured similarly to a Linux alike system, but it is not a POSIX file system.  
+It is also partially based on the principle that
+"moving computation is cheaper than moving data".  Data sets are split into "blocks"
+which are stored locally and redundantly on "DataNodes" typically on per node in a cluster.
+The location and organization of these blocks is maintained by a master "NameNode".
 
-However, most common linux file system commands have implementations within the `hdfs dfs` command. 
+This file system is structured similarly to a Linux alike system with a folder hierarchy, but it is not a POSIX file system and relaxes several requirements of that standard to enable faster read and write operations ("throughput") and facilitate streaming data applications.  
+
+However, most common Linux file system commands have implementations within the `hdfs dfs` command. 
 
 For instance, the following commands would create a directory with my uniqname within an hdfs `/user/` directory.
 
@@ -80,13 +138,19 @@ And, after some processing, maybe extract a results file back to the local direc
 ```
 hdfs dfs -get results.csv results.csv
 ```
-Learn more about HDFS at the Apache [website](http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/FileSystemShell.html).
+Learn more about the HDFS file system shell at the Apache [website](http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/FileSystemShell.html).
 
 
-## YARN
+### YARN
 
-YARN is the hadoop resource manager similar to the role played by Moab/TORQUE/PBS job scheduling system used on Flux.
+[YARN](https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html) is the hadoop resource manager similar to the role played by Moab/TORQUE/PBS job scheduling system used on Flux.
 
+To be more specific, in the Flux framework:
+
+ + [PBS](https://en.wikipedia.org/wiki/Portable_Batch_System) is the scheduling software
+ + [TORQUE](https://en.wikipedia.org/wiki/TORQUE) is the resource manager
+ + [Moab](http://www.adaptivecomputing.com/products/open-source/maui/) is the
+ job-scheduler (a commercial implementation of)
 ## MapReduce
 
 Hadoop is designed to implement the [MapReduce](https://en.wikipedia.org/wiki/MapReduce) abstraction for data processing.  Under the map reduce paradigm, data processing tasks are split into multiple smaller jobs which can be executed in parallel using local subsets of data -- this is the map step -- with the results then aggregated in a "reduce" step. 
@@ -95,6 +159,8 @@ Hadoop is designed to implement the [MapReduce](https://en.wikipedia.org/wiki/Ma
 
 Learn more at [http://hadoop.apache.org](http://hadoop.apache.org).
 
-There are some additonal examples on the 
+There are some additional examples on the 
 Flux Hadoop [User Guide](http://arc-ts.umich.edu/hadoop-user-guide/). 
 
+
+Professor Shedden's 2016 notes on [distributed computing](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/spark/).
