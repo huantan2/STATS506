@@ -1,0 +1,100 @@
+---
+title: "Distributed Computing"
+author: "Statistics 506, Fall 2017"
+date: "1"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Hadoop
+
+Hadoop is software with the goal of enabling processing for very large amounts of data by distributing both the data and the processing across many ("thousands") of servers.  
+
+Here is the description from the hadoop manual (`man hadoop`):
+
+```
+DESCRIPTION
+  Here's what makes Hadoop especially useful:
+
+       Here's what makes Hadoop especially
+       useful:
+
+       Scalable
+           Hadoop can reliably store and
+           process petabytes.
+
+       Economical
+           It distributes the data and pro‐
+           cessing across clusters of commonly
+           available computers. These clusters
+           can number into the thousands of
+           nodes.
+
+       Efficient
+           By distributing the data, Hadoop
+           can process it in parallel on the
+           nodes where the data is located.
+           This makes it extremely rapid.
+
+       Reliable
+           Hadoop automatically maintains mul‐
+           tiple copies of data and automati‐
+           cally redeploys computing tasks
+           based on failures.
+```
+
+Hadoop consists of two main components the HDFS file system and a resource manager called
+YARN.
+
+### HDFS
+
+HDFS is an acronym for *Hadoop Distributed File System*.  The file system is 
+
+This file system is structured similarly to a Linux alike system, but it is not a POSIX file system.  
+
+However, most common linux file system commands have implementations within the `hdfs dfs` command. 
+
+For instance, the following commands would create a directory with my uniqname within an hdfs `/user/` directory.
+
+```
+hdfs dfs -mkdir /user/jbhender
+```
+
+Local data `example.csv` could then be placed into this directory using `-put`.
+
+```
+hdfs dfs -put ./example.csv example.csv
+```
+
+See the examples that have been put there: 
+
+```
+hdfs dfs -ls /user/jbhender/
+```
+
+And, after some processing, maybe extract a results file back to the local directory.
+
+```
+hdfs dfs -get results.csv results.csv
+```
+Learn more about HDFS at the Apache [website](http://hadoop.apache.org/docs/r2.5.2/hadoop-project-dist/hadoop-common/FileSystemShell.html).
+
+
+## YARN
+
+YARN is the hadoop resource manager similar to the role played by Moab/TORQUE/PBS job scheduling system used on Flux.
+
+## MapReduce
+
+Hadoop is designed to implement the [MapReduce](https://en.wikipedia.org/wiki/MapReduce) abstraction for data processing.  Under the map reduce paradigm, data processing tasks are split into multiple smaller jobs which can be executed in parallel using local subsets of data -- this is the map step -- with the results then aggregated in a "reduce" step. 
+
+## Resources
+
+Learn more at [http://hadoop.apache.org](http://hadoop.apache.org).
+
+There are some additonal examples on the 
+Flux Hadoop [User Guide](http://arc-ts.umich.edu/hadoop-user-guide/). 
+
