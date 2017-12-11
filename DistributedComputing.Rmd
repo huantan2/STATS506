@@ -155,12 +155,54 @@ To be more specific, in the Flux framework:
 
 Hadoop is designed to implement the [MapReduce](https://en.wikipedia.org/wiki/MapReduce) abstraction for data processing.  Under the map reduce paradigm, data processing tasks are split into multiple smaller jobs which can be executed in parallel using local subsets of data -- this is the map step -- with the results then aggregated in a "reduce" step. 
 
+
+## Spark
+
+Apache [Spark](https://spark.apache.org/) is another popular framework for
+computing on a distributed cluster.  
+
+As with Hadoop, Spark is built around the core concept of distributed data. The
+fundamental idea within Spark is the 'Resilient Distributed Dataset' or (RDD).
+RDDs are *immutable* meaning they cannot be modified after creation. Instead,
+we work with RDDs by transforming them to create new RDDs or by performing 
+*actions* such as filtering and summarizing. 
+
+By combining actions, more complex
+statistical tasks such as fitting a GLM can be carried out. A collection of
+such tasks are available in the Spark machine learning library MLib. 
+
+Since the release of Spark 2.0, there is DataFrame library built on top of the RDDs
+which has a more familiar table structure familar from R or SQL.  
+
+The native language for Sparc is Scala which resembles Java.  However, there are
+interfaces for R and Python making Sparc more accessible.  The PySpark API for
+python is more mature than the R API.  
+
+A limited R interface called [sparklyr](http://spark.rstudio.com/) is available from RStudio.  A more complete
+but less fmailiar interface is [SparkR](http://spark.apache.org/docs/latest/sparkr.html).  
+
+We can install Spark and SparklyR as follows.
+```r
+install.packages(sparklyr)
+library(sparklyr)
+spark_install(version = "2.1.0")
+```
+
+We will look at a simple examples from sparklyr avaialalbe [here](./SparkExample.R)
+
 ## Resources
 
-Learn more at [http://hadoop.apache.org](http://hadoop.apache.org).
-
-There are some additional examples on the 
+  + Hadoop
+    - Learn more about hadoop at [http://hadoop.apache.org](http://hadoop.apache.org).
+    
+    - There are some additional examples on the 
 Flux Hadoop [User Guide](http://arc-ts.umich.edu/hadoop-user-guide/). 
 
+  + Spark
+  
+     - [Sparklyr](http://spark.rstudio.com/)
+     
+     - [SparkR](http://spark.apache.org/docs/latest/sparkr.html)
 
-Professor Shedden's 2016 notes on [distributed computing](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/spark/).
+  + General:
+     - Professor Shedden's 2016 notes on [distributed computing](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/spark/).

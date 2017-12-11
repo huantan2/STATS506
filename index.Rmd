@@ -62,7 +62,7 @@ output:
 
   [Basic SAS](./Basic_SAS.html)
 
-  [Problem Set 4](./ProblemSet4.html)
+  [Problem Set 4](./ProblemSet4.html), [[Solutions](./PS4/PS4_solutions.html)]
 
   [Memory in R](./MemoryProfiling.html)
 

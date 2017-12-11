@@ -214,7 +214,7 @@ To use a C++ function via sourceCpp:
   4. Compile and source your function using `sourceCpp()` and a link to the file.
 
 Here are some minimal examples based on generating Fibonacci numbers. You
-can download the source code [here]().
+can download the source code [here](./Rcpp_ex.tgz).
 
 #### FibCpp0
 
@@ -350,5 +350,21 @@ sourceCpp('~/Stats506/FibCPP2.cpp')
 FibCpp2(10)
 ```
 
-[Here]() is another simple example and an exercise. 
+### Example
 
+[Here](./CPP_Example.html) is another simple example. 
+
+### Building a package with Rcpp
+
+The `sourceCpp` function is convenient for interactive use and initial development.
+However, for larger projects with multiple functions it is better to maintain
+the code base using an R package.  Rcpp automates much of the work involved in
+doing this via the `compileAttributes` function.
+
+This function creates a C++ wrapper to any C++ functions tagged with the 
+`// [[Rcpp::export]]` attribute that handles type conversion and an R wrapper
+that calls this function in turn.  This makes for a relatively seamless process
+in which you only occasionally need to look into the translation details.
+
+In the [download](./Rcpp_ex.tgz) above is avery simple R package `Pkg` with the
+`getRegion` function from the previous example.  
