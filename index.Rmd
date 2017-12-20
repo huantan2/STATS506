@@ -69,6 +69,8 @@ output:
   [Using C/C++ from R](./Using_C_Cpp.html)
 
   [Distributed Computing](./DistributedComputing.html)
+  
+  [Solutions to Final Exam](./FinalExam_solutions.pdf) (pdf)
   </div>
   <div>
   </div>
