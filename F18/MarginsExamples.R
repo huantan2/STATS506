@@ -5,7 +5,9 @@
 ## Statistical content: Adjusted precitions & marginal effects
 ##
 ## Updated: August 28, 2018
-
+## To Do: Examples showing average adjusted predictions
+#         Examples showing marginal effects
+#         
 # libraries: ------------------------------------------------------------------
 library(tidyverse)
 
@@ -182,4 +184,6 @@ adjpred.lm = function( model, df_new ){
 
 #sprintf('%3.1f%% (95%% CI: %3.1f-%3.1f%%)', 100*fit, 100*l, 100*u)
 
-
+## Note: getS3method('confint', 'glm', envir = asNamespace("MASS"))
+##       getS3method('profile', 'glm', envir = asNamespace("MASS"))
+##       getS3method('confint', 'profile.glm', envir = asNamespace("MASS"))
