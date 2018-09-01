@@ -1,0 +1,36 @@
+---
+title: "Stats 506,  Computational Methods and Tools in Statistics"
+author: "Instructor: James Henderson, PhD"
+date: "Fall 2018"
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: ../styles.css
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(cache=FALSE)
+knitr::opts_chunk$set(include=FALSE)
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+<div style = "text-align: center; margin-left: 20%; margin-right: 20%; 
+  background-color: beige">
+
+## Course Materials 
+  <div style = "text-align: left; margin-left: 10%; margin-right: 10%">
+  <a href="./Syllabus.html">Syllabus</a>
+
+  <a href="./Course_Overview.html">Course Overview</a>
+```{r include=FALSE}
+#  <a href="./Git.html">Version control using Git</a>
+  
+#  <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
+```
+  
+  
+  </div>
+  <div>
+  </div>
+</div>
