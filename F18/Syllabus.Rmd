@@ -78,7 +78,6 @@ managing, and presenting data. We will cover the topics below along with several
     - dplyr, data.tables, and other tools for split/apply/combine in R
     - Rcpp, using C/C++ within R
     - parallel programming in R
-  + 
   + SQL
   + Batch computing and job scheduling (PBS)
 
@@ -91,6 +90,15 @@ personal machine. You should install both R and RStudio as described in steps
 
 You will also need an ssh client, such as Terminal (Mac), 
 [Putty](https://www.putty.org/) (Windows) or [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6) (Windows).
+
+## Submitting work late
+
+You are expected to turn in all work by the due dates listed on canvas. However,
+to accomodate unexpected circumstances you may utlize up to ten "late days" for 
+submitting homework or quizzes subject to the following restrictions.  Each
+late day utilized grants you a 24-hour extension to submit the assignment. Late
+days may only be utlized in integer increments. There is a maximum of 1 late day
+for any single quiz. Late days can not be used for projects or exams. 
 
 ## Accomdations for students with disabilities
 
