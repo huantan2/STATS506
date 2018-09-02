@@ -1,0 +1,22 @@
+---
+title: "<a href='./index.html'>Statistics 506 </a>"
+author: "Instructor: James Henderson, PhD"
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    include:
+      after_body: ./footer.html
+    css: ./styles.css
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Please choose a semester below:
+
+ + [Fall 2018](./F18/index.html)
+ + [Fall 2017](./F17/index.html)
