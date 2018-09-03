@@ -1,0 +1,98 @@
+---
+title: "Learning is a shared responsibility"
+author: "James Henderson, PhD"
+date: 
+output: ioslides_presentation
+---
+
+## Icons
+
+In course materials, I will use the following icons to signal to you how I intend for us to interact during that portion of class:
+
+ - <img src='../icons/reading.png' style="height: 50px"/> "Reading" signifies reading you should do outside of class.
+ 
+ - <img src='../icons/observe.png' style="height: 50px"/> "Observe" is direct instruction; i.e. a lecture or example. You should observe, watch, listen, and ask questions.  
+
+ - <img src='../icons/laptop.png' style='height: 50px'/> "Laptop" signifies a hands on activity you should work through. Please bring a laptop to class for this purpose. When we don't work through these in class, please do so on your own.
+
+## <img src="../icons/observe.png" style="height: 100px"/>  Demonstrations and examples
+ + When you see the "observe" icon, you should expect to watch, listen and *ask questions* but not expect the pacing to allow you to follow along at your laptop.
+ 
+ + If you find it difficult to keep up during the in-class demonstrations consider:
+    
+    - Putting your computer away and focusing on the key commands or concepts being demonstrated.
+    
+    - Asking questions in class or jotting down questions to research / ask later.
+    
+    - Work out syntax and details at your own pace after class.
+
+##  <img src="../icons/QuestionsWelcome.png" style="height: 70px"/> Questions
+
+ +  *Relevant* questions are always welcome during lectures. 
+ 
+ + When you ask a  question, if I don't call you by name please state your name before asking the question.
+ 
+ + Although we will set aside time in class for activities and exercises please remember that this is not a lab course. 
+
+<img src="../icons/QuestionsWelcome.png" style="height: 200px"/>
+
+##  <img src="../icons/QuestionsWelcome.png" style="height: 70px"/> Questions
+
+ + Questions about syntax should be asked:
+    
+    - When a command is being introduced or used in class 
+    - In office hours, **after** reading the documentation and/or performing
+    and internet search.
+    
+ + Think about the scope of your question:
+ 
+    - Is it relevant to the current topic? 
+    
+        + Yes $\to$ ask now
+       
+        + No $\to$ ask later
+
+    - Am I likely to find the answer on my own? If "yes" try do so first and then ask if you're still unsure after some research.
+
+
+## <img src="../icons/reading.png" style="height: 70px"/> Readings
+
+ + I plan to cover topics in more depth at the expense of breadth. You will
+ have to make up for the lack of breadth through reading and exercises.
+
+ + I encourage you to ask questions about the readings at the start of classes.
+
+ + You should plan to spend 1hr per week for readings, on average. 
+ 
+ + You do not need to read all the software documentation linked to under resources,  but should learn to find relevant information there. 
+ 
+## <img src='../icons/laptop.png' style="height: 100px"/> Exercises and Examples
+
+ + Around once a week, we will take time to work through exercices and similar activities in class.  Please bring a laptop to class or sit next to someone with a laptop for this purpose. 
+ 
+ + After each class, set aside time to work through the examples and exercises discussed in class. 
+ 
+ + <img src='../icons/QuestionsWelcome.png' style="height: 50px"/> Questions about examples and exercises from previous lectures are always welcome in office hours and at the start of class.
+ 
+## Establishing a review workflow
+
+ + If you are working remotely (on a server) log-on and move to a directory you've 
+ created to organize your work, i.e. 
+
+
+>   ssh uniqname@scs.dsc.umich.edu
+ 
+   
+>   cd 506/
+
+ 
+ + Refer to the first reading assignment or ask in office hours for help with this.
+
+ + Visit the course website and copy the address of a script.
+ 
+ + Use `wget` to download the script to your local directory.
+ 
+ + Open the relevant program (i.e. Stata, R, etc) and work through the script line by line.
+ Use help to understand the syntax.
+
+
