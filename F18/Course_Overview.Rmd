@@ -14,6 +14,8 @@ output:
     encompasses the many ways - both routine and specialized - that
     computers are used by statistical analysts and data scientists. 
 
+## Computatational Methods and Tools in Statistics
+
   + This broad view encompasses but is not limited to: 
   
     - Managing, obtaining, and organizing data
@@ -28,18 +30,16 @@ output:
     
 ## Course Overview
 
-  + Course Website: <a href='www.jbhender.github.io/Stats506/F18'>www.jbhender.github.io/Stats506</a>
+  + Course Website: <a href='www.jbhender.github.io/Stats506/F18'>www.jbhender.github.io/Stats506/F18/</a>
   
   + General computing skills: Linux shell, git, literate programming
-  
-  + Documentation & reporting tools: Markdown & Rmarkdown
   
   + Scripting Languages: R, Stata, SAS
   
   + "Advanced" R: dplyr, data.tables, functional and object oriented programming,
   Rcpp 
   
-  + Other languages: C++, C, SQL, html
+  + Other languages:  (R)Markdown, html, C++, C, SQL
   
   + High performance and parallel computing
   
@@ -96,35 +96,35 @@ academic articles.
 ## Popularity in job postings
 <center>
 ```{r, out.width="400px",echo=FALSE}
-knitr::include_graphics("img/DSjobs1a.png")
+knitr::include_graphics("../img/DSjobs1a.png")
 ```
 </center>
 
 ## R vs SAS
 <center>
 ```{r, out.width="500px",echo=FALSE}
-knitr::include_graphics("img/DSjobs1c.png")
+knitr::include_graphics("../img/DSjobs1c.png")
 ```
 </center>
 
 ## R vs Python
 <center>
 ```{r, out.width="500px",echo=FALSE}
-knitr::include_graphics("img/DSjobs1d.png")
+knitr::include_graphics("../img/DSjobs1d.png")
 ```
 </center>
 
 ## Scholarly articles
 <center>
 ```{r, out.width="500px",echo=FALSE}
-knitr::include_graphics("img/DSjobs2a.png")
+knitr::include_graphics("../img/DSjobs2a.png")
 ```
 </center>
 
 ## 1-Year Trends for scholarly articles
 <center>
 ```{r, out.width="500px",echo=FALSE}
-knitr::include_graphics("img/DSjobs2c.png")
+knitr::include_graphics("../img/DSjobs2c.png")
 ```
 </center>
 
@@ -137,7 +137,7 @@ or Stata
 
 <center>
 ```{r, out.width="400px",echo=FALSE}
-knitr::include_graphics("img/HSR_stats_table.png")
+knitr::include_graphics("../img/HSR_stats_table.png")
 ```
 </center>
 

@@ -1,0 +1,248 @@
+---
+title: "Linux Shell Skills"
+author: "<a href='./index.html'>Statistics 506, Fall 2018</a>" 
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: ../styles.css
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## ![](../icons/reading.png){width='25px'} Readings 
+
+The readings below are assigned through Canvas:
+
+1. [Linux Shell Skills](http://dept.stat.lsa.umich.edu/~kshedden/Courses/Stat506/linux-shell/)
+from Prof. Shedden's 2016 Course notes
+
+2. [A tmux Primer](https://danielmiessler.com/study/tmux/) by Daniel Meissler
+
+3. [Statistics and Computation Service ](http://www.itcs.umich.edu/scs/) by UM ITS
+
+## ![](../icons/Observe.png){width='25px'} Getting Started
+
+If you are using a computer running a Mac or linux OS you have access to a linux terminal installed on your computer as *Terminal*.
+
+If you are using a computer running a Windows OS, you will need to install a
+terminal or shell proram capable of acting as such.  Most people use [Putty](https://www.putty.org/) but 
+[Powershell](https://docs.microsoft.com/en-us/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6)  may also be an option.
+
+Experienced users may be interested in [zsh](http://zsh.sourceforge.net/) but
+we will not make use of it for this class.
+
+## ![](../icons/Observe.png){width='25px'} Connecting to UM Machines  
+
+### AFS
+In order to connect to university linux servers, you need to have an
+AFS home directory.  If you do not have one, you can set it up by visiting
+http://mfile.umich.edu/ and selecting the 'AFS Self-Provisioning Tool'. 
+
+### Hosts
+You can connect to a UM linux server using `ssh` as follows:
+
+```bash
+  ssh uniqname@login.itd.umich.edu
+  ssh uniqname@scs.dsc.umich.edu
+  ssh uniqname@mario.dsc.umich.edu
+  ssh uniqname@luigi.dsc.umich.edu
+```
+
+Replace uniqname with your UM unique name which is same as the first part of 
+your UM email address.
+
+### Trouble connecting
+
+If you have trouble connecting to the SCS servers please visit this
+[help page](http://www.itcs.umich.edu/scs/access_problems.php).
+
+### ![](../icons/Laptop.png){width='18px'} Exercises 
+
+1. In a web browser, visit https://mfile.umich.edu and login to view your files. If needed, use the self-provisioning tool first.
+1. Find or install your terminal program and open it.
+1. Connect to `scs.dsc.umich.edu` using `ssh`. Which host were you connected to? Log out.
+1. Connect to `login.itd.umich.edu` using `ssh`. Which host were you connected to? Log out an connect again. Were you connected to the same host?
+
+## ![](../icons/Observe.png){width='25px'} File system  
+
+In Linux essentially everything is a file: this includes program executables,
+system configurations, as well as your own data and source files. 
+
+Files are organized hierarchically into directories beginning with the *root* directory `/`. Directories can contain files and subdirectories with locations in the directory hierarchy separated by a `/`. This collection of directories and files is called a *file tree*.
+
+Use the following commands to navigate and interact with the file tree:
+
+ + `ls` (list files), `ls -a`, `ls -l`
+ + `cd` (change directories)
+ + `pwd` (print the current or *working* directory)
+ + `mkdir` (make directory), `mkdir -p`
+ + `rmdir` (remove directory)
+ + `rm` (remove a file), `rm -r`
+ + `mv` Move a file or directory
+ + `find` Find a file.
+ 
+In working with files, it is helpful to know:
+
+ + `.` refers to the current directory,
+ + `..` refers to the parent directory, one step up the file tree.
+ + `cd` invoked with no arguments will return you to your home directory.
+ + Configuration files and others used by programs are often name as *hidden files* whose filenames begin with a `.`. To see these files, use `ls -a`.
+ + Use *filename wildcards* to refer to groups of files matching specific patterns:
+    - `*` matches any sequence of characters
+    - `?` matches any single character.
+
+### Environment variables
+
+Enviroment variables determine certain aspects of how the OS behaves and 
+responds to your instructions.  Here are a couple of important ones:
+
+ + HOME  (location of your home directory)
+ + SHELL (the shell you are using to interface with the machine)
+ + PATH  (locations to search for executable programs)
+
+In the [Bash shell](https://www.gnu.org/software/bash/manual/bash.html), use `$` to access the value of an environment variable. The `echo` command can be used to print these values to the screen  `echo $SHELL`. 
+ 
+Use `which` to search your `$PATH` for an executable command. 
+
+A tilde `~` will often be expanded as `$HOME`.
+
+### Resources
+
+For more see the [GNU Coreutils documentation](https://www.gnu.org/software/coreutils/manual/coreutils.html)
+
+## ![](../icons/Observe.png){width='25px'} Terminal Multiplexers 
+
+A terminal multiplexer allows you to invoke multiple shells from the same terminal connection and to keep these sessions running after you log off.
+The two most common are `screen` and `tmux`, with the latter being the preferred option for this course.  
+
+When using a terminal multiplexer with a networked file system such as AFS,
+be aware that your credentials or "ticket" for accessing the networked files will typically expire after a fixed amount of time (e.g. 24 hours). You can renew this ticket for a fixed amount of time using `kinit`:
+
+```bash
+kinit -4d
+aklog
+```
+
+### ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'} <a href="./tumx_example.html">Example / Exercise</a>  
+
+##  ![](../icons/Observe.png){width='25px'} Transferring data 
+
+There are many ways to transfer data to a remote server using the shell.  Three common ways to do this from the command line are: 
+  
+  +`scp` to copy to/from your local computer, 
+  
+  +`wget` to download directly from the web, 
+  
+  +`sftp` or 'secure file transfer protocol' for transferring large volumes of data.
+  
+To transfer a single smallish file from the working directory
+on your local machine to your AFS space:
+
+```bash
+scp ./local_file.ext uniqname@scs.dsc.umich.edu:~/remote_directory/
+```
+
+To transfer a file from the remote directory to your local computer reverse
+the arguments:
+
+```bash
+scp uniqname@scs.dsc.umich.edu:~/remote_directory/remote_file.ext ./
+```
+For larger transfers you should use `sftp` for efficiency and to avoid 
+adding strain to the computation servers.
+
+To download data directly from a website to a remote server use a web browser to find the URL to the file and use `wget`:
+
+```bash
+wget https://remote.url.edu/path/to/file/data.txt
+```
+Make sure you are only downloading only from trusted sources!
+
+##  ![](../icons/Observe.png){width='25px'} Compression and archiving
+
+Large files often contain redundant data and can be stored
+using less space on disk in a compressed format. 
+Depending on the system and the file, compression can make
+reading from or writing to a file more efficient as reading 
+the bits off disk is  "I/O bound" while decoding/decompressing is 
+"CPU bound".  This is particularly 
+useful on shared systems with I/O bottlenecks.
+
+### Disk utilization
+
+The `du` or disk utilization utility can be used to see the space 
+on disk used by a file or set of files. Use the `-h` option to print values
+in *human* readable units.  Use `-s` to get *sum* totals for a directory.
+
+### gzip
+
+There are many compression tools, one of the most popular is `gzip`. The command,
+
+```bash
+gzip file.txt
+```
+compresses `file.txt` into `file.gz`.
+
+The file can be uncompressed using,
+
+```bash
+gunzip file.gz
+```
+the original extension is stored in the compressed file.
+
+You can retain the compressed copy and unzip directly to standard output using
+the `-c` option:
+
+```bash
+gunzip -c file.gz > file.txt
+```
+
+### tar
+
+A *tarball* is an archive of a file tree and often compressed.  
+This can be useful for transferring directories between machines manually.  
+It is also a way to cleanly archive files from projects you would like to 
+retain, but no longer need to use 
+frequently. Many programs have the ability to work directly with archived 
+and/or compressed data.
+
+The two most common use cases are creating an archive,
+
+```bash
+tar cvfz name.tgz ./parent_folder
+```
+
+and extracting the archive,
+
+```bash
+tar xvfz name.tgz
+```
+
+The extension `.tgz` is short for `.tar.gz` indicating that the archive has been compressed using `gzip`.
+
+## ![](../icons/Observe.png){width='25px'} Other common tools  
+
+You may at times find the following command line tools useful:
+
+  + sort - sort a file on or more fields
+  
+  + cut -  extract select columns from a delimted file
+  
+  + paste - concatenate files line by line 
+  
+  + join - merge two files based on a common field.
+
+We will look at examples in class as time permits.
+
+## ![](../icons/Observe.png){width='25px'} Shell scripting 
+
+A shell script is a program constructed from shell commands.  You can view
+an example [here](./student_dir.sh).
+
+<a href='./index.html'>Statistics 506, Fall 2018 Homepage</a>

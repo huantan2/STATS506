@@ -1,0 +1,39 @@
+---
+title: " "
+author: "<a href='./index.html'>Statistics 506, Fall 2018</a>" 
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: ../styles.css
+---
+
+### Example / Exercise ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'}
+
+1. Open your terminal and `ssh` to `scs.dsc.umich.edu`
+1. Note your host, type `hostname` to confirm.
+1. Start a new tmux session named `506` as follows: `tmux new -s 506`
+1. Type `echo Window 0` 
+1. Create a new window using `cntrl+b w`
+1. Type `echo Window 1`
+1. Use `cntrl+b n` and `cntrl+b p` to navigate between windows. 
+1. Within either window, type `echo Pane 0`
+1. Create a new horizontal pane using `cntrl+b cntrl+"`
+1. Type `echo Pane 1`
+1. Use `cntrl+b [up arrow]` and `cntrl+b [down arrow]` to move betwen
+panes. 
+1. Make directories `~/506/test/1` using `mkdir -p $Home/506/test/1`
+1. Move to the upper pane, and split into two panes using `cntrl+b cntrl+%`
+1. On the left, change directories to `~/506/test/1`. Then type `pwd`.
+1. On the right, change directories to `~/506/test` and type `pwd`.
+1. In the lower pane, change directories to `~/506` and type `pwd`.
+1. Use `cntrl+b [space]` to swap pane layouts.
+1. Type `cntrl+b d` to detach from the tmux session.
+1. Type `tmux ls` to list your tmux sessions.
+1. Type `tmux a -t 506` to attach to the `506` session.
+1. Use `cntrl+b x` (repond `y` for yes) to kill a single panel.
+1. Type `exit` to exit the entire window.
+
+You will learn more about tmux by reading [A tmux Primer](https://danielmiessler.com/study/tmux/) by Daniel Meissler.
+
