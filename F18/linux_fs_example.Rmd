@@ -1,0 +1,37 @@
+---
+title: "<a href='./LinuxShellSkills.html#file-system'> File system </a>"
+author: "<a href='./index.html'>Statistics 506, Fall 2018</a>" 
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: ../styles.css
+---
+1. Connect: `ssh login.itd.umich.edu`
+1. Print host: `hostname`
+1. Print working directory: `pwd`
+1. Create a directory: `mkdir 506`
+1. Move to that directory: `cd 506`
+1. Create a basic `README.md` document to document 
+your work in this folder: 
+    - `echo "## Stats 506" > README.md`
+    - Append a blank line `echo " " >> README.md`
+    
+1. Create additional directories: 
+    - `mkdir ./hw; mkdir ./examples`
+    - `mkdir ./data && mkdir ./data/csv`
+1. Create multiple directories using a loop
+
+```bash
+for d in R Stata SAS sh
+do
+  mkdir ./examples/$d
+  echo $d
+done
+```  
+
+Note the use of `;` to execute multiple commands on the same line.
+It isn't needed here, but `&&` is used to execute the second command only if
+the first completes successfully. You can, but are not required to, read more about exit status and exit codes [here](https://bencane.com/2014/09/02/understanding-exit-codes-and-how-to-use-them-in-bash-scripts/).
+

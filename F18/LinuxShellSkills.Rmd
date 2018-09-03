@@ -28,10 +28,10 @@ from Prof. Shedden's 2016 Course notes
 
 ## ![](../icons/Observe.png){width='25px'} Getting Started
 
-If you are using a computer running a Mac or linux OS you have access to a linux terminal installed on your computer as *Terminal*.
+If you are using a computer running a Mac or Linux OS you have access to a Linux terminal installed on your computer as *Terminal*.
 
 If you are using a computer running a Windows OS, you will need to install a
-terminal or shell proram capable of acting as such.  Most people use [Putty](https://www.putty.org/) but 
+terminal or shell program capable of acting as such.  Most people use [Putty](https://www.putty.org/) but 
 [Powershell](https://docs.microsoft.com/en-us/powershell/scripting/getting-started/getting-started-with-windows-powershell?view=powershell-6)  may also be an option.
 
 Experienced users may be interested in [zsh](http://zsh.sourceforge.net/) but
@@ -40,12 +40,12 @@ we will not make use of it for this class.
 ## ![](../icons/Observe.png){width='25px'} Connecting to UM Machines  
 
 ### AFS
-In order to connect to university linux servers, you need to have an
+In order to connect to university Linux servers, you need to have an
 AFS home directory.  If you do not have one, you can set it up by visiting
 http://mfile.umich.edu/ and selecting the 'AFS Self-Provisioning Tool'. 
 
 ### Hosts
-You can connect to a UM linux server using `ssh` as follows:
+You can connect to a UM Linux server using `ssh` as follows:
 
 ```bash
   ssh uniqname@login.itd.umich.edu
@@ -64,17 +64,17 @@ If you have trouble connecting to the SCS servers please visit this
 
 ### ![](../icons/Laptop.png){width='18px'} Exercises 
 
-1. In a web browser, visit https://mfile.umich.edu and login to view your files. If needed, use the self-provisioning tool first.
+1. In a web browser, visit https://mfile.umich.edu and log in to view your files. If needed, use the self-provisioning tool first.
 1. Find or install your terminal program and open it.
 1. Connect to `scs.dsc.umich.edu` using `ssh`. Which host were you connected to? Log out.
 1. Connect to `login.itd.umich.edu` using `ssh`. Which host were you connected to? Log out an connect again. Were you connected to the same host?
 
 ## ![](../icons/Observe.png){width='25px'} File system  
 
-In Linux essentially everything is a file: this includes program executables,
+In Linux essentially everything is a file: this includes program executable,
 system configurations, as well as your own data and source files. 
 
-Files are organized hierarchically into directories beginning with the *root* directory `/`. Directories can contain files and subdirectories with locations in the directory hierarchy separated by a `/`. This collection of directories and files is called a *file tree*.
+Files are organized hierarchically into directories beginning with the *root* directory `/`. Directories can contain files and sub-directories with locations in the directory hierarchy separated by a `/`. This collection of directories and files is called a *file tree*.
 
 Use the following commands to navigate and interact with the file tree:
 
@@ -92,14 +92,14 @@ In working with files, it is helpful to know:
  + `.` refers to the current directory,
  + `..` refers to the parent directory, one step up the file tree.
  + `cd` invoked with no arguments will return you to your home directory.
- + Configuration files and others used by programs are often name as *hidden files* whose filenames begin with a `.`. To see these files, use `ls -a`.
+ + Configuration files and others used by programs are often name as *hidden files* whose file names begin with a `.`. To see these files, use `ls -a`.
  + Use *filename wildcards* to refer to groups of files matching specific patterns:
     - `*` matches any sequence of characters
     - `?` matches any single character.
 
 ### Environment variables
 
-Enviroment variables determine certain aspects of how the OS behaves and 
+Environment variables determine certain aspects of how the OS behaves and 
 responds to your instructions.  Here are a couple of important ones:
 
  + HOME  (location of your home directory)
@@ -114,7 +114,11 @@ A tilde `~` will often be expanded as `$HOME`.
 
 ### Resources
 
-For more see the [GNU Coreutils documentation](https://www.gnu.org/software/coreutils/manual/coreutils.html)
+For more see the [GNU Coreutils documentation](https://www.gnu.org/software/coreutils/manual/coreutils.html).
+
+### ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'}  <a href="./linux_fs_example.html">Examples & Exercises</a>
+
+----
 
 ## ![](../icons/Observe.png){width='25px'} Terminal Multiplexers 
 
@@ -129,7 +133,7 @@ kinit -4d
 aklog
 ```
 
-### ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'} <a href="./tumx_example.html">Example / Exercise</a>  
+### ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'} <a href="./tumx_example.html">Examples & Exercises</a>  
 
 ##  ![](../icons/Observe.png){width='25px'} Transferring data 
 
@@ -232,7 +236,7 @@ You may at times find the following command line tools useful:
 
   + sort - sort a file on or more fields
   
-  + cut -  extract select columns from a delimted file
+  + cut -  extract select columns from a delimited file
   
   + paste - concatenate files line by line 
   
