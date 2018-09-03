@@ -1,0 +1,10 @@
+---
+title: " "
+author: "<a href='./index.html'>Statistics 506, Fall 2018</a>" 
+date: 
+output: 
+  html_document:
+    theme: journal
+    highlight: pygments
+    css: ../styles.css
+---
