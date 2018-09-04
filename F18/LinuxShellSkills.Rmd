@@ -26,7 +26,9 @@ from Prof. Shedden's 2016 Course notes
 
 3. [Statistics and Computation Service ](http://www.itcs.umich.edu/scs/) by UM ITS
 
-## ![](../icons/Observe.png){width='25px'} Getting Started
+----
+
+## ![](../icons/Observe.png){width='25px'} Terminals
 
 If you are using a computer running a Mac or Linux OS you have access to a Linux terminal installed on your computer as *Terminal*.
 
@@ -36,6 +38,8 @@ terminal or shell program capable of acting as such.  Most people use [Putty](ht
 
 Experienced users may be interested in [zsh](http://zsh.sourceforge.net/) but
 we will not make use of it for this class.
+
+----
 
 ## ![](../icons/Observe.png){width='25px'} Connecting to UM Machines  
 
@@ -68,6 +72,8 @@ If you have trouble connecting to the SCS servers please visit this
 1. Find or install your terminal program and open it.
 1. Connect to `scs.dsc.umich.edu` using `ssh`. Which host were you connected to? Log out.
 1. Connect to `login.itd.umich.edu` using `ssh`. Which host were you connected to? Log out an connect again. Were you connected to the same host?
+
+----
 
 ## ![](../icons/Observe.png){width='25px'} File system  
 
@@ -135,6 +141,8 @@ aklog
 
 ### ![](../icons/Observe.png){width='25px'} +  ![](../icons/Laptop.png){width='18px'} <a href="./tumx_example.html">Examples & Exercises</a>  
 
+----
+
 ##  ![](../icons/Observe.png){width='25px'} Transferring data 
 
 There are many ways to transfer data to a remote server using the shell.  Three common ways to do this from the command line are: 
@@ -167,6 +175,8 @@ To download data directly from a website to a remote server use a web browser to
 wget https://remote.url.edu/path/to/file/data.txt
 ```
 Make sure you are only downloading only from trusted sources!
+
+----
 
 ##  ![](../icons/Observe.png){width='25px'} Compression and archiving
 
@@ -230,6 +240,8 @@ tar xvfz name.tgz
 
 The extension `.tgz` is short for `.tar.gz` indicating that the archive has been compressed using `gzip`.
 
+----
+
 ## ![](../icons/Observe.png){width='25px'} Other common tools  
 
 You may at times find the following command line tools useful:
@@ -244,9 +256,15 @@ You may at times find the following command line tools useful:
 
 We will look at examples in class as time permits.
 
+----
+
 ## ![](../icons/Observe.png){width='25px'} Shell scripting 
 
 A shell script is a program constructed from shell commands.  You can view
 an example [here](./student_dir.sh).
+
+For more on shell scripting, see
+[Chapter 4](https://www.datascienceatthecommandline.com/chapter-4-creating-reusable-command-line-tools.html)
+from *Data Science at the Command Line* by Jeroen Janssens.
 
 <a href='./index.html'>Statistics 506, Fall 2018 Homepage</a>
