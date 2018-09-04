@@ -23,14 +23,14 @@ output:
 
 ## Key Dates:
   + Drop/Add deadline: Sep 24
-  + In-class midterm exam: Tu Oct 24
-  + Projects due: 
+  + In-class midterm exam: Tu Oct 23
+  + Projects due: TBD
   + Final Exam: M, December 17 1:30-3:30
   + No Class: Tu Oct 16 (Study Break), Th Nov 22 (Holiday)
   + <a href="http://ro.umich.edu/">Office of the Registrar</a>
 
 If exam or project due dates interfere with religious holidays you observe 
-please let me know as soon as possible so we may work out alterantive arrangements.
+please let me know as soon as possible so we may work out alternative arrangements.
   
 ## Grading information:
   + Midterm exam: 15%
@@ -56,7 +56,7 @@ Hadley Wickham, is a helpful bridge between these two.
 You should have taken or be currently enrolled in an 
 intermediate applied statistics course such as 
 Stats 500, and you should be comfortable programming in at least one 
-programming language or scripting in a statisical software language.
+programming language or scripting in a statistical software language.
 
 ## Course Description: 
 Statistics 506 covers a variety of topics related to the use of computing for analyzing,
@@ -94,13 +94,13 @@ You will also need an ssh client, such as Terminal (Mac),
 ## Submitting work late
 
 You are expected to turn in all work by the due dates listed on canvas. However,
-to accomodate unexpected circumstances you may utlize up to ten "late days" for 
+to accommodate unexpected circumstances you may utilize up to ten "late days" for 
 submitting homework or quizzes subject to the following restrictions.  Each
 late day utilized grants you a 24-hour extension to submit the assignment. Late
-days may only be utlized in integer increments. There is a maximum of 1 late day
+days may only be utilized in integer increments. There is a maximum of 1 late day
 for any single quiz. Late days can not be used for projects or exams. 
 
-## Accomdations for students with disabilities
+## Accomodations for students with disabilities
 
 If you think you need an accommodation for a disability, please let me know at your earliest convenience. Some aspects of this course, 
 the assignments, the in-class activities, and the way the course is usually taught may be modified to facilitate your participation and progress. 
@@ -110,12 +110,12 @@ SSD (734-763-3000; http://ssd.umich.edu)
  typically recommends accommodations through a Verified Individualized Services and Accommodations (VISA) form. 
 Any information you provide is private and confidential and will be treated as such.
 
-Academic Integrity
+## Academic Integrity
 Unless specifically stated otherwise, students are expected to complete homework and other assignments independently without copying code or text from other students in this course. Students are encouraged to discuss problem sets and to help one another with concepts and syntax, but such discussions should not reach the point of representing one student’s work as another’s.
 
 Use of materials from other sources should fall within the license for those materials and include proper attribution.
 
-For more on acadmeic integrity, please be advised of Rackham policy: http://www.rackham.umich.edu/policies/academic-policies/section11.
+For more on academic integrity, please be advised of Rackham policy: http://www.rackham.umich.edu/policies/academic-policies/section11.
 
 
 ## Mandatory Reporting and Sexual Misconduct
