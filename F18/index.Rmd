@@ -23,10 +23,13 @@ knitr::opts_chunk$set(echo=FALSE)
   <a href="./Syllabus.html">Syllabus</a>
 
   <a href="./Course_Overview.html">Course Overview</a>
+  
+  <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
+  
 ```{r include=FALSE}
 #  <a href="./Git.html">Version control using Git</a>
   
-#  <a href="./LinuxShellSkills.html">Linux Shell Skills</a>
+#  
 ```
   
   
